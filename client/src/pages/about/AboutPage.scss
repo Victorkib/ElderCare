@@ -1,0 +1,443 @@
+// Variables
+$primary-color: #4a90e2;
+$secondary-color: #f5f7fa;
+$accent-color: #e86d6d;
+$text-color: #2c3e50;
+$light-text: #647380;
+$white: #ffffff;
+$dark-blue: #1a365d;
+$success-green: #48bb78;
+
+// Mixins
+@mixin container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+@mixin section-padding {
+  padding: 5rem 0;
+}
+
+@mixin card-shadow {
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+}
+
+@mixin flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+// Base Styles
+.about-page {
+  color: $text-color;
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    margin: 0;
+    line-height: 1.2;
+  }
+
+  .container {
+    @include container;
+  }
+
+  section {
+    @include section-padding;
+  }
+}
+
+// Hero Section
+.hero-section {
+  position: relative;
+  min-height: 80vh;
+  background: linear-gradient(135deg, $dark-blue, darken($primary-color, 15%));
+  color: $white;
+  overflow: hidden;
+
+  .hero-content {
+    max-width: 800px;
+    margin: 0 auto;
+    text-align: center;
+    position: relative;
+    z-index: 2;
+    padding: 8rem 0;
+
+    h1 {
+      font-size: 4rem;
+      margin-bottom: 1.5rem;
+
+      .highlight {
+        color: $accent-color;
+      }
+    }
+
+    .hero-subtitle {
+      font-size: 1.5rem;
+      line-height: 1.6;
+      opacity: 0.9;
+    }
+  }
+
+  .hero-background {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('/path-to-your-pattern.svg') center/cover;
+    opacity: 0.1;
+  }
+}
+
+// Statistics Section
+.statistics-section {
+  background: $white;
+  margin-top: -5rem;
+  position: relative;
+  z-index: 3;
+
+  .statistics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 2rem;
+    padding: 2rem;
+
+    .stat-card {
+      @include flex-center;
+      flex-direction: column;
+      text-align: center;
+      padding: 2rem;
+      background: $white;
+      border-radius: 1rem;
+      @include card-shadow;
+      transition: transform 0.3s ease;
+
+      &:hover {
+        transform: translateY(-5px);
+      }
+
+      h3 {
+        font-size: 2.5rem;
+        color: $primary-color;
+        margin-bottom: 0.5rem;
+      }
+
+      p {
+        color: $light-text;
+        font-size: 1.1rem;
+      }
+    }
+  }
+}
+
+// Mission Section
+.mission-section {
+  background: $secondary-color;
+
+  .mission-content {
+    max-width: 800px;
+    margin: 0 auto;
+    text-align: center;
+
+    h2 {
+      font-size: 2.5rem;
+      margin-bottom: 2rem;
+      color: $dark-blue;
+    }
+
+    p {
+      font-size: 1.25rem;
+      line-height: 1.6;
+      color: $light-text;
+    }
+  }
+}
+
+// Values Section
+.values-section {
+  background: $white;
+
+  .values-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+
+    .value-card {
+      padding: 2rem;
+      border-radius: 1rem;
+      background: $white;
+      @include card-shadow;
+      transition: all 0.3s ease;
+
+      &:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+
+        .icon-wrapper {
+          background: $primary-color;
+          color: $white;
+        }
+      }
+
+      .icon-wrapper {
+        @include flex-center;
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: rgba($primary-color, 0.1);
+        color: $primary-color;
+        margin-bottom: 1.5rem;
+        transition: all 0.3s ease;
+      }
+
+      h3 {
+        font-size: 1.5rem;
+        margin-bottom: 1rem;
+      }
+
+      p {
+        color: $light-text;
+        line-height: 1.6;
+      }
+    }
+  }
+}
+
+// Services Section
+.services-section {
+  background: $secondary-color;
+
+  h2 {
+    text-align: center;
+    font-size: 2.5rem;
+    margin-bottom: 3rem;
+  }
+
+  .services-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 2rem;
+
+    .service-card {
+      background: $white;
+      padding: 2rem;
+      border-radius: 1rem;
+      @include card-shadow;
+      transition: all 0.3s ease;
+
+      &:hover {
+        transform: translateY(-5px);
+
+        .service-icon {
+          background: $primary-color;
+          color: $white;
+        }
+      }
+
+      .service-icon {
+        @include flex-center;
+        width: 50px;
+        height: 50px;
+        border-radius: 1rem;
+        background: rgba($primary-color, 0.1);
+        color: $primary-color;
+        margin-bottom: 1.5rem;
+        transition: all 0.3s ease;
+      }
+
+      h3 {
+        font-size: 1.25rem;
+        margin-bottom: 1rem;
+      }
+
+      p {
+        color: $light-text;
+        line-height: 1.6;
+      }
+    }
+  }
+}
+
+// Testimonials Section
+.testimonials-section {
+  background: $secondary-color;
+
+  h2 {
+    text-align: center;
+    font-size: 2.5rem;
+    margin-bottom: 3rem;
+  }
+
+  .testimonials-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+
+    .testimonial-card {
+      background: $white;
+      padding: 2rem;
+      border-radius: 1rem;
+      @include card-shadow;
+      text-align: center;
+      position: relative;
+
+      .quote-marks {
+        position: absolute;
+        top: -1.5rem;
+        left: 0;
+        right: 0;
+        font-size: 3rem;
+        color: $primary-color;
+        text-align: center;
+      }
+
+      .quote {
+        font-size: 1.25rem;
+        font-style: italic;
+        color: $text-color;
+        margin-bottom: 1.5rem;
+      }
+
+      .rating {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 1.5rem;
+
+        .star-icon {
+          color: $success-green;
+          margin-right: 0.25rem;
+        }
+      }
+
+      .author {
+        h4 {
+          font-size: 1.25rem;
+          font-weight: bold;
+          color: $dark-blue;
+        }
+
+        p {
+          color: $light-text;
+        }
+      }
+    }
+  }
+}
+
+// Awards Section
+.awards-section {
+  background: $white;
+
+  h2 {
+    text-align: center;
+    font-size: 2.5rem;
+    margin-bottom: 3rem;
+  }
+
+  .awards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 2rem;
+
+    .award-card {
+      background: $white;
+      padding: 2rem;
+      border-radius: 1rem;
+      text-align: center;
+      @include card-shadow;
+
+      .award-icon {
+        font-size: 3rem;
+        color: $primary-color;
+        margin-bottom: 1.5rem;
+      }
+
+      h3 {
+        font-size: 1.75rem;
+        margin-bottom: 1rem;
+        color: $dark-blue;
+      }
+
+      p {
+        color: $light-text;
+        line-height: 1.6;
+      }
+    }
+  }
+}
+
+// CTA Section
+.cta-section {
+  background: $primary-color;
+  color: $white;
+  text-align: center;
+  padding: 6rem 0;
+
+  .cta-content {
+    max-width: 800px;
+    margin: 0 auto;
+
+    h2 {
+      font-size: 2.5rem;
+      margin-bottom: 2rem;
+    }
+
+    p {
+      font-size: 1.25rem;
+      line-height: 1.6;
+      opacity: 0.8;
+      margin-bottom: 3rem;
+    }
+
+    .cta-buttons {
+      display: flex;
+      justify-content: center;
+      gap: 1.5rem;
+
+      .primary-button,
+      .secondary-button {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem 2rem;
+        font-size: 1.25rem;
+        border-radius: 3rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+
+      .primary-button {
+        background: $accent-color;
+        color: $white;
+        border: none;
+
+        &:hover {
+          background: darken($accent-color, 10%);
+        }
+
+        .button-icon {
+          margin-left: 0.5rem;
+        }
+      }
+
+      .secondary-button {
+        background: transparent;
+        border: 2px solid $white;
+        color: $white;
+
+        &:hover {
+          background: $white;
+          color: $primary-color;
+        }
+
+        .button-icon {
+          margin-right: 0.5rem;
+        }
+      }
+    }
+  }
+}

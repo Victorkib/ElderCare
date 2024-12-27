@@ -1,0 +1,226 @@
+// _variables.scss
+$primary-color: #2563eb;
+$primary-hover: #1d4ed8;
+$error-color: #dc2626;
+$success-color: #16a34a;
+$border-radius: 0.5rem;
+$transition-speed: 0.2s;
+
+// health-log.scss
+.health-log {
+  &-container {
+    max-width: 72rem;
+    margin: 0 auto;
+    padding: 1.5rem;
+  }
+
+  &-card {
+    background: white;
+    border-radius: $border-radius;
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    transition: box-shadow $transition-speed ease-in-out;
+
+    &:hover {
+      box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1),
+        0 4px 6px -4px rgb(0 0 0 / 0.1);
+    }
+  }
+
+  &-tabs {
+    border-bottom: 1px solid #e5e7eb;
+    padding: 1rem;
+
+    button {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.5rem 1rem;
+      border-radius: $border-radius;
+      transition: all $transition-speed ease-in-out;
+
+      &.active {
+        background-color: rgba($primary-color, 0.1);
+        color: $primary-color;
+      }
+
+      &:hover:not(.active) {
+        background-color: #f3f4f6;
+      }
+
+      svg {
+        margin-right: 0.5rem;
+      }
+    }
+  }
+
+  &-form {
+    padding: 1.5rem;
+
+    .form-group {
+      margin-bottom: 1.5rem;
+
+      label {
+        display: block;
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: #374151;
+        margin-bottom: 0.25rem;
+      }
+    }
+
+    .input-group {
+      position: relative;
+
+      svg {
+        position: absolute;
+        left: 0.75rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #9ca3af;
+        pointer-events: none;
+      }
+
+      input,
+      select,
+      textarea {
+        width: 100%;
+        padding: 0.625rem 0.75rem;
+        padding-left: 2.5rem;
+        border: 1px solid #d1d5db;
+        border-radius: $border-radius;
+        transition: all $transition-speed ease-in-out;
+
+        &:focus {
+          outline: none;
+          border-color: $primary-color;
+          box-shadow: 0 0 0 2px rgba($primary-color, 0.1);
+        }
+
+        &::placeholder {
+          color: #9ca3af;
+        }
+      }
+
+      textarea {
+        min-height: 100px;
+        resize: vertical;
+      }
+    }
+
+    .blood-pressure-group {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+
+      input {
+        flex: 1;
+      }
+
+      .separator {
+        color: #6b7280;
+        font-weight: 500;
+      }
+    }
+  }
+
+  &-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #e5e7eb;
+
+    button {
+      padding: 0.5rem 1rem;
+      border-radius: $border-radius;
+      font-size: 0.875rem;
+      font-weight: 500;
+      transition: all $transition-speed ease-in-out;
+
+      &.primary {
+        background-color: $primary-color;
+        color: white;
+
+        &:hover {
+          background-color: $primary-hover;
+        }
+      }
+
+      &.secondary {
+        background-color: white;
+        border: 1px solid #d1d5db;
+        color: #374151;
+
+        &:hover {
+          background-color: #f3f4f6;
+        }
+      }
+    }
+  }
+
+  &-history {
+    padding: 1.5rem;
+
+    .search-box {
+      position: relative;
+      margin-bottom: 1.5rem;
+
+      svg {
+        position: absolute;
+        left: 0.75rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #9ca3af;
+      }
+
+      input {
+        width: 100%;
+        padding: 0.625rem 0.75rem;
+        padding-left: 2.5rem;
+        border: 1px solid #d1d5db;
+        border-radius: $border-radius;
+        transition: all $transition-speed ease-in-out;
+
+        &:focus {
+          outline: none;
+          border-color: $primary-color;
+          box-shadow: 0 0 0 2px rgba($primary-color, 0.1);
+        }
+      }
+    }
+  }
+
+  // Animations
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .fade-in {
+    animation: fadeIn $transition-speed ease-out;
+  }
+}
+
+// Responsive styles
+@media (max-width: 768px) {
+  .health-log {
+    &-form {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    &-actions {
+      flex-direction: column-reverse;
+
+      button {
+        width: 100%;
+      }
+    }
+  }
+}

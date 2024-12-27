@@ -1,0 +1,231 @@
+// SCSS for Login and Register Components
+$primary-color: #4caf50;
+$secondary-color: #ff5722;
+$text-color: #333;
+$error-color: #e53935;
+$border-radius: 8px;
+$input-padding: 12px;
+$transition: 0.3s ease-in-out;
+$font-family: 'Roboto', sans-serif;
+
+// Global Auth Container Styles
+.auth-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  width: 100%;
+  background: linear-gradient(135deg, #f0f0f0, #e0e0e0);
+  font-family: $font-family;
+  // border: 1px solid crimson;
+
+  .auth-card {
+    background: #fff;
+    border-radius: $border-radius;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+    padding: 2rem;
+    width: max-content;
+
+    &.login-card {
+      border-top: 4px solid $primary-color;
+    }
+
+    &.register-card {
+      border-top: 4px solid $secondary-color;
+    }
+  }
+
+  .auth-header {
+    text-align: center;
+    margin-bottom: 1.5rem;
+
+    .logo-icon {
+      color: $primary-color;
+      margin-bottom: 0.5rem;
+    }
+
+    h1 {
+      color: $text-color;
+      font-size: 1.8rem;
+    }
+
+    p {
+      color: $text-color;
+      font-size: 0.9rem;
+    }
+  }
+
+  .auth-form {
+    .form-group {
+      margin-bottom: 1.5rem;
+
+      label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 500;
+        color: $text-color;
+      }
+
+      .input-wrapper {
+        position: relative;
+
+        .input-icon {
+          position: absolute;
+          left: 10px;
+          top: 50%;
+          transform: translateY(-50%);
+          color: $text-color;
+          pointer-events: none;
+        }
+
+        input {
+          width: 90%;
+          padding: $input-padding;
+          padding-left: 40px;
+          border: 1px solid $text-color;
+          border-radius: $border-radius;
+          outline: none;
+          font-size: 1rem;
+          transition: $transition;
+
+          &:focus {
+            border-color: $primary-color;
+            box-shadow: 0 0 5px rgba(76, 175, 80, 0.5);
+          }
+
+          &.error {
+            border-color: $error-color;
+          }
+        }
+      }
+      .error-message {
+        color: crimson;
+        font-size: 0.8rem;
+        margin-top: 0.25rem;
+      }
+
+      .password-toggle {
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        cursor: pointer;
+
+        svg {
+          color: $text-color;
+        }
+      }
+    }
+
+    .checkbox-group {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+
+      .checkbox-label {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+
+        input {
+          width: auto;
+        }
+
+        span {
+          font-size: 0.9rem;
+          color: $text-color;
+        }
+      }
+
+      .forgot-password {
+        color: $secondary-color;
+        text-decoration: none;
+        font-size: 0.9rem;
+
+        &:hover {
+          text-decoration: underline;
+        }
+      }
+    }
+
+    .submit-button {
+      background: $primary-color;
+      color: #fff;
+      padding: $input-padding;
+      width: 100%;
+      border: none;
+      border-radius: $border-radius;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: $transition;
+
+      &:hover {
+        background: $primary-color;
+      }
+    }
+  }
+
+  .auth-footer {
+    text-align: center;
+    margin-top: 1rem;
+
+    p {
+      font-size: 0.9rem;
+
+      a {
+        color: $secondary-color;
+        text-decoration: none;
+
+        &:hover {
+          text-decoration: underline;
+        }
+      }
+    }
+  }
+}
+
+// Specific Styles for Register Component
+.name-group {
+  display: flex;
+  gap: 1rem;
+
+  .form-group {
+    flex: 1;
+  }
+}
+
+.role-selector {
+  display: flex;
+  gap: 1rem;
+
+  .role-button {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex: 1;
+    padding: $input-padding;
+    background: $primary-color;
+    color: $text-color;
+    border: 1px solid $primary-color;
+    border-radius: $border-radius;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: $transition;
+
+    &.active {
+      background: $primary-color;
+      color: #fff;
+    }
+
+    &:hover {
+      background: $primary-color;
+    }
+
+    svg {
+      flex-shrink: 0;
+    }
+  }
+}

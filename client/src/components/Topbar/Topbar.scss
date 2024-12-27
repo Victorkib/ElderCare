@@ -1,0 +1,284 @@
+// Variables
+$primary-color: #4a90e2;
+$secondary-color: #f5f7fa;
+$accent-color: #e86d6d;
+$text-color: #2c3e50;
+$light-text: #647380;
+$white: #ffffff;
+$border-radius: 12px;
+$transition: all 0.3s ease;
+$box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+
+// Header Styles
+.ecs-header {
+  position: fixed;
+  top: 0;
+  width: 99%;
+  margin: 0 auto;
+  background: rgba($white, 0.95);
+  padding: 1rem 0;
+  transition: $transition;
+  z-index: 1000;
+  backdrop-filter: blur(10px);
+
+  &.scrolled {
+    box-shadow: $box-shadow;
+  }
+
+  .container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+
+    .logo-icon {
+      color: $accent-color;
+    }
+
+    h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: $text-color;
+
+      a {
+        text-decoration: none;
+        color: inherit;
+      }
+    }
+  }
+
+  .nav-menu {
+    display: flex;
+    gap: 2rem;
+    align-items: center;
+
+    .nav-links {
+      display: flex;
+      gap: 1.5rem;
+      margin-right: 1rem;
+
+      .nav-link {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: $text-color;
+        text-decoration: none;
+        font-weight: 500;
+        transition: $transition;
+        padding: 0.5rem;
+        border-radius: $border-radius;
+
+        &:hover {
+          color: $primary-color;
+          background: rgba($primary-color, 0.1);
+        }
+      }
+    }
+
+    // Profile Section Styles
+    .profile-section {
+      position: relative;
+
+      .profile-trigger {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+        background: $secondary-color;
+        border: none;
+        border-radius: $border-radius;
+        color: $text-color;
+        cursor: pointer;
+        transition: $transition;
+
+        &:hover {
+          background: $secondary-color, 5%;
+        }
+
+        .chevron {
+          transition: $transition;
+
+          &.open {
+            transform: rotate(180deg);
+          }
+        }
+      }
+
+      .profile-dropdown {
+        position: absolute;
+        top: 120%;
+        right: 0;
+        background: $white;
+        border-radius: $border-radius;
+        box-shadow: $box-shadow;
+        min-width: 200px;
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(-10px);
+        transition: $transition;
+
+        &.open {
+          opacity: 1;
+          visibility: visible;
+          transform: translateY(0);
+        }
+
+        a,
+        .logout-option {
+          display: flex;
+          align-items: center;
+          gap: 0.75rem;
+          padding: 0.75rem 1rem;
+          color: $text-color;
+          text-decoration: none;
+          transition: $transition;
+          width: 100%;
+          border: none;
+          background: none;
+          text-align: left;
+          cursor: pointer;
+          font-size: 0.9rem;
+
+          &:hover {
+            background: $secondary-color;
+            color: $primary-color;
+          }
+        }
+
+        .logout-option {
+          color: $accent-color;
+          border-top: 1px solid $secondary-color;
+
+          &:hover {
+            background: rgba($accent-color, 0.1);
+            color: $accent-color, 10%;
+          }
+        }
+      }
+    }
+
+    // Auth Section Styles
+    .auth-section {
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+
+      .login-button {
+        padding: 0.5rem 1.5rem;
+        border: 2px solid $primary-color;
+        border-radius: $border-radius;
+        color: $primary-color;
+        text-decoration: none;
+        transition: $transition;
+
+        &:hover {
+          background: $primary-color;
+          color: $white;
+        }
+      }
+
+      .cta-button {
+        padding: 0.5rem 1.5rem;
+        background: $primary-color;
+        border-radius: $border-radius;
+        color: $white;
+        text-decoration: none;
+        transition: $transition;
+
+        &:hover {
+          background: $primary-color;
+        }
+      }
+    }
+  }
+}
+
+// Mobile menu styles
+.mobile-menu-icon {
+  display: none;
+  cursor: pointer;
+  color: $text-color;
+}
+
+// Media queries for responsive design
+@media (max-width: 768px) {
+  .ecs-header {
+    .mobile-menu-icon {
+      display: block;
+    }
+    .mobile-header {
+      display: none;
+    }
+
+    .nav-menu {
+      display: none;
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: $white;
+      flex-direction: column;
+      padding: 1rem;
+      box-shadow: $box-shadow;
+
+      &.open {
+        display: flex;
+      }
+
+      .nav-links {
+        flex-direction: column;
+        width: 100%;
+        margin: 0;
+        padding: 1rem 0;
+
+        .nav-link {
+          width: 100%;
+          justify-content: flex-start;
+        }
+      }
+
+      .profile-section {
+        width: 100%;
+
+        .profile-trigger {
+          width: 100%;
+          justify-content: space-between;
+        }
+
+        .profile-dropdown {
+          position: static;
+          box-shadow: none;
+          margin-top: 0.5rem;
+          border: 1px solid $secondary-color;
+        }
+      }
+
+      .auth-section {
+        flex-direction: column;
+        width: 100%;
+        gap: 0.5rem;
+
+        .login-button,
+        .cta-button {
+          width: 100%;
+          text-align: center;
+        }
+      }
+    }
+  }
+}
+.nav-link.active,
+.profile-link.active,
+.login-button.active,
+.cta-button.active {
+  color: #f39c12; // Example: highlight color for active link
+  font-weight: bold; // Example: change font weight for active link
+}
