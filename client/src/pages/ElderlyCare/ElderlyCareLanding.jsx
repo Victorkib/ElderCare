@@ -285,12 +285,12 @@ const ElderlyCareLanding = () => {
         </div>
       </footer>
 
-      <button
+      {/* <button
         className={`scroll-to-top ${isScrolled ? 'visible' : ''}`}
         onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
       >
         <ArrowUpCircle size={24} />
-      </button>
+      </button> */}
     </div>
   );
 };

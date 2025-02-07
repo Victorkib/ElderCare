@@ -2,7 +2,9 @@ import { useState } from 'react';
 import { Heart, Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import './account.scss';
 import apiRequest from '../../utils/api';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
+import { setUser } from '../../features/users/userSlice';
 
 export const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -14,6 +16,7 @@ export const Login = () => {
   const [errors, setErrors] = useState({});
 
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -64,7 +67,8 @@ export const Login = () => {
           });
           setErrors({});
           localStorage.setItem('authToken', response.data.token);
-          navigate('/');
+          dispatch(setUser(response.data.user));
+          navigate('/land');
         }
       } catch (error) {
         // Handle errors from the backend
@@ -155,7 +159,7 @@ export const Login = () => {
 
         <div className="auth-footer">
           <p>
-            Don{`'`}t have an account? <a href="/register">Register Now</a>
+            Don{`'`}t have an account? <Link to="/register">Register Now</Link>
           </p>
         </div>
       </div>

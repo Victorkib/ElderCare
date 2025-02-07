@@ -54,7 +54,7 @@ $success-green: #48bb78;
 .hero-section {
   position: relative;
   min-height: 80vh;
-  background: linear-gradient(135deg, $dark-blue, darken($primary-color, 15%));
+  background: linear-gradient(135deg, $dark-blue, $primary-color);
   color: $white;
   overflow: hidden;
 
@@ -416,7 +416,7 @@ $success-green: #48bb78;
         border: none;
 
         &:hover {
-          background: darken($accent-color, 10%);
+          background: $accent-color;
         }
 
         .button-icon {

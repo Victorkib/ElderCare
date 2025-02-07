@@ -9,19 +9,23 @@ import {
   Heart,
   Phone,
   Info,
+  CalendarDays,
+  ClipboardList,
+  BarChart2,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { FaHeart } from 'react-icons/fa';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import Cookies from 'js-cookie';
 import './Topbar.scss';
-import apiRequest from '../../utils/api';
 import { toast, ToastContainer } from 'react-toastify';
+import { useSelector } from 'react-redux';
 
 export default function TopBar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
-  const isLoggedIn = !!localStorage.getItem('authToken');
+  const user = useSelector((store) => store.user.user);
 
   const [activeLink, setActiveLink] = useState('/');
   const location = useLocation();
@@ -42,19 +46,18 @@ export default function TopBar() {
 
   const handleLogout = async () => {
     try {
-      const response = await apiRequest.get('/logout');
-      if (response.status) {
-        localStorage.removeItem('authToken');
-        navigate('/');
-      }
+      localStorage.removeItem('authToken');
+      Cookies.remove('authToken');
+      navigate('/login');
     } catch (error) {
-      toast.error(error?.response?.data?.message || 'Error Logging out');
+      console.log('Error occured, ', error);
+      toast.error('Error logging out.');
     }
   };
 
   const closeMenus = () => {
-    setIsMenuOpen(false); // Close the mobile menu
-    setIsProfileOpen(false); // Close the profile dropdown
+    setIsMenuOpen(false);
+    setIsProfileOpen(false);
   };
 
   return (
@@ -64,16 +67,29 @@ export default function TopBar() {
           <div className="logo">
             <FaHeart className="logo-icon" />
             <h1>
-              <Link
-                to="/"
-                className={activeLink === '/' ? 'active' : ''}
-                onClick={() => {
-                  setActiveLink('/');
-                  closeMenus();
-                }}
-              >
-                ElderlyCare
-              </Link>
+              {user ? (
+                <Link
+                  to="/land"
+                  className={activeLink === '/' ? 'active' : ''}
+                  onClick={() => {
+                    setActiveLink('/');
+                    closeMenus();
+                  }}
+                >
+                  ElderlyCare
+                </Link>
+              ) : (
+                <Link
+                  to="/"
+                  className={activeLink === '/' ? 'active' : ''}
+                  onClick={() => {
+                    setActiveLink('/');
+                    closeMenus();
+                  }}
+                >
+                  ElderlyCare
+                </Link>
+              )}
             </h1>
           </div>
 
@@ -85,156 +101,175 @@ export default function TopBar() {
           </div>
 
           <nav className={`nav-menu ${isMenuOpen ? 'open' : ''}`}>
-            {/* Main navigation - common for all users */}
-            <div className="nav-links">
-              <Link
-                to="/"
-                className={`nav-link ${activeLink === '/' ? 'active' : ''}`}
-                onClick={() => {
-                  setActiveLink('/');
-                  closeMenus();
-                }}
-              >
-                <Home size={18} />
-                Home
-              </Link>
-
-              {/* Show Features and Contact only on Home tab */}
-              {activeLink === '/' && (
-                <>
-                  <a
-                    href="#features"
-                    className={`nav-link ${
-                      activeLink === '#features' ? 'active' : ''
-                    }`}
-                    onClick={() => {
-                      setActiveLink('#features');
-                      closeMenus();
-                    }}
-                  >
-                    <Heart size={18} />
-                    Features
-                  </a>
-                  <a
-                    href="#contact"
-                    className={`nav-link ${
-                      activeLink === '#contact' ? 'active' : ''
-                    }`}
-                    onClick={() => {
-                      setActiveLink('#contact');
-                      closeMenus();
-                    }}
-                  >
-                    <Phone size={18} />
-                    Contact
-                  </a>
-                </>
-              )}
-
-              <Link
-                to="/AboutPage"
-                className={`nav-link ${
-                  activeLink === '/AboutPage' ? 'active' : ''
-                }`}
-                onClick={() => {
-                  setActiveLink('/AboutPage');
-                  closeMenus();
-                }}
-              >
-                <Info size={18} />
-                About Us
-              </Link>
-            </div>
-
-            {/* Auth section */}
-            {isLoggedIn ? (
-              <div className="profile-section">
-                <button
-                  className="profile-trigger"
-                  onClick={() => setIsProfileOpen(!isProfileOpen)}
+            {!user ? (
+              <div className="nav-links">
+                <Link
+                  to="/"
+                  className={`nav-link ${activeLink === '/' ? 'active' : ''}`}
+                  onClick={() => {
+                    setActiveLink('/');
+                    closeMenus();
+                  }}
                 >
-                  <User size={20} />
-                  <span>My Profile</span>
-                  <ChevronDown
-                    size={16}
-                    className={`chevron ${isProfileOpen ? 'open' : ''}`}
-                  />
-                </button>
+                  <Home size={18} /> Home
+                </Link>
 
-                <div
-                  className={`profile-dropdown ${isProfileOpen ? 'open' : ''}`}
+                {/* Show Features and Contact only on Home tab */}
+                {activeLink === '/' && (
+                  <>
+                    <a
+                      href="#features"
+                      className="nav-link"
+                      onClick={closeMenus}
+                    >
+                      <Heart size={18} /> Features
+                    </a>
+                    <a
+                      href="#contact"
+                      className="nav-link"
+                      onClick={closeMenus}
+                    >
+                      <Phone size={18} /> Contact
+                    </a>
+                  </>
+                )}
+
+                <Link
+                  to="/AboutPage"
+                  className={`nav-link ${
+                    activeLink === '/AboutPage' ? 'active' : ''
+                  }`}
+                  onClick={() => {
+                    setActiveLink('/AboutPage');
+                    closeMenus();
+                  }}
                 >
+                  <Info size={18} /> About Us
+                </Link>
+                <div className="auth-section">
                   <Link
-                    to="/dashboard"
-                    className={`profile-link ${
-                      activeLink === '/dashboard' ? 'active' : ''
+                    className={`login-button ${
+                      activeLink === '/login' ? 'active' : ''
                     }`}
+                    to="/login"
                     onClick={() => {
-                      setActiveLink('/dashboard');
+                      setActiveLink('/login');
                       closeMenus();
                     }}
                   >
-                    <Home size={18} />
-                    Dashboard
+                    Login
                   </Link>
                   <Link
-                    to="/profile"
-                    className={`profile-link ${
-                      activeLink === '/profile' ? 'active' : ''
+                    className={`cta-button ${
+                      activeLink === '/register' ? 'active' : ''
                     }`}
+                    to="/register"
                     onClick={() => {
-                      setActiveLink('/profile');
+                      setActiveLink('/register');
                       closeMenus();
                     }}
                   >
-                    <User size={18} />
-                    Profile Settings
+                    Get Started
                   </Link>
-                  <Link
-                    to="/accountSettings"
-                    className={`profile-link ${
-                      activeLink === '/accountSettings' ? 'active' : ''
-                    }`}
-                    onClick={() => {
-                      setActiveLink('/accountSettings');
-                      closeMenus();
-                    }}
-                  >
-                    <Settings size={18} />
-                    Account Settings
-                  </Link>
-                  <button onClick={handleLogout} className="logout-option">
-                    <LogOut size={18} />
-                    Logout
-                  </button>
                 </div>
               </div>
             ) : (
-              <div className="auth-section">
+              <div className="nav-links">
                 <Link
-                  className={`login-button ${
-                    activeLink === '/login' ? 'active' : ''
+                  to="/land"
+                  className={`nav-link ${
+                    activeLink === '/land' ? 'active' : ''
                   }`}
-                  to="/login"
                   onClick={() => {
-                    setActiveLink('/login');
+                    setActiveLink('/land');
                     closeMenus();
                   }}
                 >
-                  Login
+                  <Home size={18} /> Dashboard
                 </Link>
                 <Link
-                  className={`cta-button ${
-                    activeLink === '/signup' ? 'active' : ''
+                  to="/Scheduler"
+                  className={`nav-link ${
+                    activeLink === '/Scheduler' ? 'active' : ''
                   }`}
-                  to="/signup"
                   onClick={() => {
-                    setActiveLink('/signup');
+                    setActiveLink('/scheduler');
                     closeMenus();
                   }}
                 >
-                  Get Started
+                  <CalendarDays size={18} /> Scheduler
                 </Link>
+                <Link
+                  to="/allHealthLogs"
+                  className={`nav-link ${
+                    activeLink === '/allHealthLogs' ? 'active' : ''
+                  }`}
+                  onClick={() => {
+                    setActiveLink('/allHealthLogs');
+                    closeMenus();
+                  }}
+                >
+                  <ClipboardList size={18} /> Health Logs
+                </Link>
+                <Link
+                  to="/CareAnalytics"
+                  className={`nav-link ${
+                    activeLink === '/CareAnalytics' ? 'active' : ''
+                  }`}
+                  onClick={() => {
+                    setActiveLink('/CareAnalytics');
+                    closeMenus();
+                  }}
+                >
+                  <BarChart2 size={18} /> Care Analytics
+                </Link>
+                <div className="profile-section">
+                  <button
+                    className="profile-trigger"
+                    onClick={() => setIsProfileOpen(!isProfileOpen)}
+                  >
+                    <User size={20} />
+                    <span>My Profile</span>
+                    <ChevronDown
+                      size={16}
+                      className={`chevron ${isProfileOpen ? 'open' : ''}`}
+                    />
+                  </button>
+
+                  <div
+                    className={`profile-dropdown ${
+                      isProfileOpen ? 'open' : ''
+                    }`}
+                  >
+                    <Link
+                      to="/profile"
+                      className={`profile-link ${
+                        activeLink === '/profile' ? 'active' : ''
+                      }`}
+                      onClick={() => {
+                        setActiveLink('/profile');
+                        closeMenus();
+                      }}
+                    >
+                      <User size={18} /> Profile Settings
+                    </Link>
+                    <Link
+                      to="/accountSettings"
+                      className={`profile-link ${
+                        activeLink === '/accountSettings' ? 'active' : ''
+                      }`}
+                      onClick={() => {
+                        setActiveLink('/accountSettings');
+                        closeMenus();
+                      }}
+                    >
+                      <Settings size={18} /> Account Settings
+                    </Link>
+                    <button onClick={handleLogout} className="logout-option">
+                      <LogOut size={18} /> Logout
+                    </button>
+                  </div>
+                </div>
               </div>
             )}
           </nav>

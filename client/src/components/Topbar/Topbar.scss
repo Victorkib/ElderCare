@@ -18,8 +18,10 @@ $box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
   background: rgba($white, 0.95);
   padding: 1rem 0;
   transition: $transition;
-  z-index: 1000;
+  z-index: 1100;
   backdrop-filter: blur(10px);
+
+  // border: 1px solid firebrick;
 
   &.scrolled {
     box-shadow: $box-shadow;

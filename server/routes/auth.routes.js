@@ -8,8 +8,12 @@ import {
   register,
   updateUser,
 } from '../controllers/auth.controller.js';
+import { verifyToken } from '../middleware/verifyToken.js';
 
 const router = express.Router();
+
+//verify user
+router.get('/verifyToken', verifyToken);
 
 router.post('/register', register);
 router.post('/login', login);

@@ -12,7 +12,7 @@ import {
 } from 'lucide-react';
 import './account.scss';
 import apiRequest from '../../utils/api';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -359,7 +359,7 @@ export const Register = () => {
 
           <div className="auth-footer">
             <p>
-              Already have an account? <a href="/login">Login</a>
+              Already have an account? <Link to="/login">Login</Link>
             </p>
           </div>
         </div>

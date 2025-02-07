@@ -8,6 +8,10 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 
 import authRoutes from './routes/auth.routes.js';
+import elderRoutes from './routes/elder.Routes.js';
+import healthLog from './routes/healthLog.routes.js';
+import elderNotesRoutes from './routes/elderNotes.routes.js';
+import eventRoutes from './routes/event.routes.js';
 
 dotenv.config();
 
@@ -52,6 +56,10 @@ app.use(express.static(path.join(__dirname, '../../dist')));
 
 // API Routes (before handling frontend routes)
 app.use('/api', authRoutes);
+app.use('/api/elders', elderRoutes);
+app.use('/api/elderHealthLog', healthLog);
+app.use('/api/elderNotes', elderNotesRoutes);
+app.use('/api/events', eventRoutes);
 
 // Handle any other routes and serve index.html (React's entry point)
 app.get('*', (req, res) => {
