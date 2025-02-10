@@ -65,6 +65,7 @@ export const RequireAuth = () => {
     const verifyToken = async () => {
       const token =
         Cookies.get('authToken') || localStorage.getItem('authToken');
+      console.log('token: ', token);
       if (!token) {
         setIsAuthenticated(false);
         setLoading(false);
@@ -72,7 +73,7 @@ export const RequireAuth = () => {
       }
 
       try {
-        const response = await apiRequest.get('/verifyToken');
+        const response = await apiRequest.post('/verifyToken', { token });
         if (response.data?.isValid) {
           setIsAuthenticated(true);
           dispatch(setUser(response.data.user));

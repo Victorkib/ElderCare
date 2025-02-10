@@ -136,12 +136,12 @@ export default function TopBar() {
                 )}
 
                 <Link
-                  to="/AboutPage"
+                  to="/aboutPage"
                   className={`nav-link ${
-                    activeLink === '/AboutPage' ? 'active' : ''
+                    activeLink === '/aboutPage' ? 'active' : ''
                   }`}
                   onClick={() => {
-                    setActiveLink('/AboutPage');
+                    setActiveLink('/aboutPage');
                     closeMenus();
                   }}
                 >

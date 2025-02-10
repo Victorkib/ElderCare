@@ -35,7 +35,7 @@ function App() {
             <Route index element={<ElderlyCareLanding />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
-            <Route path="/AboutPage" element={<AboutPage />} />
+            <Route path="/aboutPage" element={<AboutPage />} />
 
             {/* Protected Routes */}
             <Route element={<RequireAuth />}>

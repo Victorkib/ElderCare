@@ -17,7 +17,9 @@ export const verifyToken = async (req, res) => {
     }
 
     // Get the token from cookies
-    const token = req.cookies.authToken;
+    const token = req.cookies.authToken
+      ? req.cookies.authToken
+      : req.body.token;
 
     // If no token is found, return a 403 (Forbidden) response
     if (!token) {
