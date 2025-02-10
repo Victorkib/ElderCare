@@ -15,9 +15,11 @@ import apiRequest from '../../utils/api';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { TailSpin } from 'react-loader-spinner';
 
 export const Register = () => {
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -104,6 +106,7 @@ export const Register = () => {
     e.preventDefault();
     const newErrors = validateForm();
     if (Object.keys(newErrors).length === 0) {
+      setLoading(true);
       try {
         // Make API request to the backend
         const response = await apiRequest.post('/register', {
@@ -137,6 +140,8 @@ export const Register = () => {
           error.response?.data?.message ||
           'An error occurred during registration';
         toast.error(errorMessage);
+      } finally {
+        setLoading(false);
       }
     } else {
       setErrors(newErrors);
@@ -364,6 +369,17 @@ export const Register = () => {
           </div>
         </div>
       </div>
+      {loading && (
+        <div className="loader-overlay">
+          <TailSpin
+            height="100"
+            width="100"
+            color="#4fa94d"
+            ariaLabel="loading"
+            visible={true}
+          />
+        </div>
+      )}
     </>
   );
 };

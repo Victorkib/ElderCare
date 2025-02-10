@@ -5,6 +5,7 @@ import apiRequest from '../../utils/api';
 import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { setUser } from '../../features/users/userSlice';
+import { TailSpin } from 'react-loader-spinner';
 
 export const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -14,6 +15,7 @@ export const Login = () => {
     rememberMe: false,
   });
   const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -50,6 +52,7 @@ export const Login = () => {
     e.preventDefault();
     const newErrors = validateForm();
     if (Object.keys(newErrors).length === 0) {
+      setLoading(true);
       try {
         // Make API request to the backend
         const response = await apiRequest.post('/login', {
@@ -75,6 +78,8 @@ export const Login = () => {
         const errorMessage =
           error.response?.data?.message || 'An error occurred during login';
         alert(errorMessage);
+      } finally {
+        setLoading(false);
       }
     } else {
       setErrors(newErrors);
@@ -163,6 +168,17 @@ export const Login = () => {
           </p>
         </div>
       </div>
+      {loading && (
+        <div className="loader-overlay">
+          <TailSpin
+            height="100"
+            width="100"
+            color="#4fa94d"
+            ariaLabel="loading"
+            visible={true}
+          />
+        </div>
+      )}
     </div>
   );
 };
