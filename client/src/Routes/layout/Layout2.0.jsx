@@ -3,7 +3,7 @@ import Cookies from 'js-cookie';
 import TopBar from '../../components/Topbar/TopBar';
 import { ArrowUpCircle } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import './Layout.scss';
+import './layout.scss';
 import { TailSpin } from 'react-loader-spinner';
 import apiRequest from '../../utils/api';
 import { useDispatch } from 'react-redux';
