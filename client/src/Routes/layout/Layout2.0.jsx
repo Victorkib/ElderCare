@@ -65,7 +65,6 @@ export const RequireAuth = () => {
     const verifyToken = async () => {
       const token =
         Cookies.get('authToken') || localStorage.getItem('authToken');
-      console.log('token: ', token);
       if (!token) {
         setIsAuthenticated(false);
         setLoading(false);
