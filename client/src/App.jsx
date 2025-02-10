@@ -23,6 +23,7 @@ import ElderProfile from './components/AllElders/ElderProfile';
 import ElderScheduler from './components/AllElders/ElderScheduler';
 import OrganizedElders from './components/AllElders/OrganizedElders';
 import CaregiverManagementDashboard from './components/CareGivers/CaregiverManagementDashboard';
+import NotFound from './components/NotFound/NotFound';
 
 function App() {
   return (
@@ -63,6 +64,7 @@ function App() {
               <Route path="/HealthLogs" element={<HealthLogs />} />
               <Route path="/elder" element={<ElderlyCareForm />} />
             </Route>
+            <Route path="/*" element={<NotFound />} />
           </Route>
         </Routes>
       </BrowserRouter>
