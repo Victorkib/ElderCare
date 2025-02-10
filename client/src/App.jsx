@@ -23,7 +23,6 @@ import ElderProfile from './components/AllElders/ElderProfile';
 import ElderScheduler from './components/AllElders/ElderScheduler';
 import OrganizedElders from './components/AllElders/OrganizedElders';
 import CaregiverManagementDashboard from './components/CareGivers/CaregiverManagementDashboard';
-import CaregiverManagement from './components/CareGivers/CaregiverManagement';
 
 function App() {
   return (
@@ -53,7 +52,6 @@ function App() {
                 path="/caregiver"
                 element={<CaregiverManagementDashboard />}
               />
-              <Route path="/cares" element={<CaregiverManagement />} />
               {/*  Currently not being used*/}
               <Route path="/allElders" element={<ViewAllElderlyUsers />} />
               <Route path="/CareAnalytics" element={<CareAnalytics />} />{' '}
