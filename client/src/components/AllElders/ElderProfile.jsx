@@ -55,6 +55,7 @@ const ElderProfile = () => {
   const [elderData, setElderData] = useState(
     location?.state?.elderData || null
   );
+  const [upcomingEvents, setUpcomongEvents] = useState();
   const { elderId } = useParams();
   const theme = useTheme();
   const [tabValue, setTabValue] = useState(0);
@@ -69,7 +70,8 @@ const ElderProfile = () => {
             `/elders/getSingleElder/${elderId}`
           );
           if (response.status) {
-            setElderData(response.data);
+            setElderData(response.data.elder);
+            setUpcomongEvents(response.data.upcomingEvents);
             console.log('elderData: ', response.data);
           }
         } catch (error) {
@@ -86,10 +88,7 @@ const ElderProfile = () => {
   // Sample data - replace with actual API calls
   const elder = {
     ...elderData,
-    upcomingEvents: [
-      { time: '09:00', type: 'medication', name: 'Metformin' },
-      { time: '11:30', type: 'appointment', name: 'Dr. Smith Checkup' },
-    ],
+    upcomingEvents,
     careTeam: [
       { name: 'Nurse Jane', role: 'Primary Care' },
       { name: 'Dr. Smith', role: 'Physician' },

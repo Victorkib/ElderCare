@@ -1,4 +1,5 @@
 import Elder from '../models/elder.model.js';
+import Event from '../models/event.model.js';
 import HealthLog from '../models/healthLog.model.js';
 
 // Register a new elder
@@ -89,7 +90,25 @@ export const getElder = async (req, res) => {
       });
     }
 
-    res.status(200).json(elder);
+    // Fetch upcoming events for this elder
+    const upcomingEventsData = await Event.find({
+      elderIds: req.params.id,
+    }).sort({ start: 1 }); // Sort events by start time (earliest first)
+
+    // Map events to the expected format
+    const upcomingEvents = upcomingEventsData.map((event) => ({
+      time: new Date(event.start).toLocaleTimeString([], {
+        hour: '2-digit',
+        minute: '2-digit',
+      }), // Format the start time as 'HH:mm'
+      type: event.type,
+      name: event.title, // Use the title of the event as 'name'
+    }));
+
+    res.status(200).json({
+      elder,
+      upcomingEvents,
+    });
   } catch (error) {
     res.status(500).json({
       status: 'error',

@@ -1182,7 +1182,7 @@ const ElderlyRegistration = () => {
 
       if (response.status === 200 || response.status === 201) {
         toast.success('Registration successful!');
-        navigate('/allElders');
+        navigate('/organizedElders');
         // Add any additional success handling (e.g., redirect)
       } else {
         throw new Error('Registration failed');

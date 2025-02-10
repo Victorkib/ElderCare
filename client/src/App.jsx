@@ -22,6 +22,8 @@ import HealthcareDashboard from './components/ElderCareManager/infoo';
 import ElderProfile from './components/AllElders/ElderProfile';
 import ElderScheduler from './components/AllElders/ElderScheduler';
 import OrganizedElders from './components/AllElders/OrganizedElders';
+import CaregiverManagementDashboard from './components/CareGivers/CaregiverManagementDashboard';
+import CaregiverManagement from './components/CareGivers/CaregiverManagement';
 
 function App() {
   return (
@@ -46,9 +48,14 @@ function App() {
               <Route path="/elderProfile/:elderId" element={<ElderProfile />} />
               <Route path="/scheduler" element={<ElderScheduler />} />
               <Route path="/organizedElders" element={<OrganizedElders />} />
+              <Route path="/indiv/:elderId" element={<HealthcareDashboard />} />
+              <Route
+                path="/caregiver"
+                element={<CaregiverManagementDashboard />}
+              />
+              <Route path="/cares" element={<CaregiverManagement />} />
               {/*  Currently not being used*/}
               <Route path="/allElders" element={<ViewAllElderlyUsers />} />
-              <Route path="/indiv/:elderId" element={<HealthcareDashboard />} />
               <Route path="/CareAnalytics" element={<CareAnalytics />} />{' '}
               <Route path="/indiv" element={<HealthDashboard />} />
               <Route path="/Individual" element={<IndividualHealthRecord />} />

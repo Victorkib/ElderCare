@@ -53,7 +53,7 @@ import {
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
 import { cn } from '../../utils/util';
 import apiRequest from '../../utils/api';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { toast, ToastContainer } from 'react-toastify';
 import NotesModal from './NotesModal';
 import MedicationInput from '../healthLog/Individual/MedicationInput';
@@ -61,6 +61,8 @@ import { DatePicker } from 'antd';
 import moment from 'moment';
 import { TailSpin } from 'react-loader-spinner';
 import ExportButton from '../ui/ExportButton';
+import { Button } from '@mui/material';
+import { MedicationLiquid, Schedule } from '@mui/icons-material';
 
 const HealthcareDashboard = () => {
   const { elderId } = useParams();
@@ -69,6 +71,8 @@ const HealthcareDashboard = () => {
   const [selectedDate, setSelectedDate] = useState(null);
   const [noteText, setNoteText] = useState('');
   const [showNotesModal, setShowNotesModal] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 2;
@@ -213,24 +217,7 @@ const HealthcareDashboard = () => {
   ];
 
   // Upcoming appointments and tasks
-  const appointments = [
-    {
-      date: '2025-02-05',
-      time: '10:00',
-      type: 'Check-up',
-      provider: 'Dr. Johnson',
-      location: 'Room 205',
-      notes: 'Bring latest blood work results',
-    },
-    {
-      date: '2025-02-10',
-      time: '14:00',
-      type: 'Cardiology',
-      provider: 'Dr. Williams',
-      location: 'Cardiology Wing',
-      notes: 'Annual heart check-up',
-    },
-  ];
+  const [appointments, setAppointments] = useState([]);
 
   const medicationData = [
     { date: '2024-03-20', adherence: 100, count: 3 },
@@ -240,18 +227,23 @@ const HealthcareDashboard = () => {
     { date: '2024-03-24', adherence: 80, count: 3 },
   ];
   const fetchUserGeneralData = async () => {
+    setLoading(true);
     try {
       const response = await apiRequest.get(
         `/elderHealthLog/getPatientData/${elderId}`
       );
       if (response.status) {
-        const { patientData, healthMetrics, medications } = response.data.data;
+        const { patientData, healthMetrics, medications, appointments } =
+          response.data.data;
         setPatientData(patientData);
         setHealthMetrics(healthMetrics);
         setMedications(medications);
+        appointments.length > 0 && setAppointments(appointments);
       }
     } catch (error) {
       toast.error(error?.response?.data?.message || 'Error Fetching Data!');
+    } finally {
+      setLoading(false);
     }
   };
   useEffect(() => {
@@ -281,7 +273,6 @@ const HealthcareDashboard = () => {
   };
 
   const VitalsModal = ({ onClose, onSubmit, elderId }) => {
-    const [loading, setLoading] = useState(false);
     const [submitStatus, setSubmitStatus] = useState(null);
     const [formData, setFormData] = useState({
       elderlyId: elderId,
@@ -622,17 +613,6 @@ const HealthcareDashboard = () => {
             </div>
           </form>
         </div>
-        {loading && (
-          <div className="loader-overlay">
-            <TailSpin
-              height="100"
-              width="100"
-              color="#4fa94d"
-              ariaLabel="loading"
-              visible={true}
-            />
-          </div>
-        )}
       </div>
     );
   };
@@ -794,8 +774,8 @@ const HealthcareDashboard = () => {
               </CardHeader>
               <CardContent className="flex-1 flex flex-col justify-between">
                 <div className="space-y-4 flex-1">
-                  {currentMedications &&
-                    currentMedications?.map((med, index) => (
+                  {currentMedications && currentMedications.length > 0 ? (
+                    currentMedications.map((med, index) => (
                       <div key={index} className="p-3 bg-gray-50 rounded-lg">
                         <div className="flex justify-between items-start">
                           <div>
@@ -832,43 +812,68 @@ const HealthcareDashboard = () => {
                           Refill by: {med.refillDate}
                         </div>
                       </div>
-                    ))}
+                    ))
+                  ) : (
+                    <div className="flex flex-col items-center justify-center space-y-4 py-10">
+                      <p className="text-gray-500 text-center">
+                        No current medications found. Click below to manage
+                        medications.
+                      </p>
+                      <Button
+                        variant="contained"
+                        startIcon={<MedicationLiquid />}
+                        className="border border-gray-400 px-4 py-2 rounded-lg"
+                        // onClick={() =>
+                        //   navigate(`/medication-manager`, {
+                        //     state: {
+                        //       elderId: elderId,
+                        //     },
+                        //   })
+                        // }
+                        onClick={() => setShowVitalsModal(true)}
+                      >
+                        Log New Medication
+                      </Button>
+                    </div>
+                  )}
                 </div>
 
                 {/* Pagination Controls */}
-                <div className="mt-6 flex items-center justify-center gap-2">
-                  <button
-                    onClick={() => paginate(currentPage - 1)}
-                    disabled={currentPage === 1}
-                    className="p-1 rounded-lg hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <ChevronLeft className="w-5 h-5" />
-                  </button>
+                {currentMedications && currentMedications.length > 0 && (
+                  <div className="mt-6 flex items-center justify-center gap-2">
+                    <button
+                      onClick={() => paginate(currentPage - 1)}
+                      disabled={currentPage === 1}
+                      className="p-1 rounded-lg hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <ChevronLeft className="w-5 h-5" />
+                    </button>
 
-                  <div className="flex gap-1">
-                    {[...Array(totalPages)].map((_, index) => (
-                      <button
-                        key={index}
-                        onClick={() => paginate(index + 1)}
-                        className={`w-8 h-8 rounded-lg text-sm font-medium transition-colors ${
-                          currentPage === index + 1
-                            ? 'bg-blue-100 text-blue-800'
-                            : 'hover:bg-gray-100'
-                        }`}
-                      >
-                        {index + 1}
-                      </button>
-                    ))}
+                    <div className="flex gap-1">
+                      {[...Array(totalPages)].map((_, index) => (
+                        <button
+                          key={index}
+                          onClick={() => paginate(index + 1)}
+                          className={`w-8 h-8 rounded-lg text-sm font-medium transition-colors ${
+                            currentPage === index + 1
+                              ? 'bg-blue-100 text-blue-800'
+                              : 'hover:bg-gray-100'
+                          }`}
+                        >
+                          {index + 1}
+                        </button>
+                      ))}
+                    </div>
+
+                    <button
+                      onClick={() => paginate(currentPage + 1)}
+                      disabled={currentPage === totalPages}
+                      className="p-1 rounded-lg hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <ChevronRight className="w-5 h-5" />
+                    </button>
                   </div>
-
-                  <button
-                    onClick={() => paginate(currentPage + 1)}
-                    disabled={currentPage === totalPages}
-                    className="p-1 rounded-lg hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <ChevronRight className="w-5 h-5" />
-                  </button>
-                </div>
+                )}
               </CardContent>
             </Card>
 
@@ -961,32 +966,54 @@ const HealthcareDashboard = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {appointments.map((appointment) => (
-                    <div
-                      key={appointment.date + appointment.time}
-                      className="p-3 bg-gray-50 rounded-lg"
-                    >
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <p className="font-medium">{appointment.type}</p>
-                          <p className="text-sm text-gray-500">
-                            {appointment.provider} - {appointment.location}
-                          </p>
+                  {appointments.length > 0 ? (
+                    appointments.map((appointment) => (
+                      <div
+                        key={appointment.date + appointment.time}
+                        className="p-3 bg-gray-50 rounded-lg"
+                      >
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <p className="font-medium">{appointment.type}</p>
+                            <p className="text-sm text-gray-500">
+                              {appointment.provider} - {appointment.location}
+                            </p>
+                          </div>
+                          <div className="text-right">
+                            <p className="font-medium">{appointment.date}</p>
+                            <p className="text-sm text-gray-500">
+                              {appointment.time}
+                            </p>
+                          </div>
                         </div>
-                        <div className="text-right">
-                          <p className="font-medium">{appointment.date}</p>
-                          <p className="text-sm text-gray-500">
-                            {appointment.time}
+                        {appointment.notes && (
+                          <p className="mt-2 text-sm text-gray-600">
+                            Note: {appointment.notes}
                           </p>
-                        </div>
+                        )}
                       </div>
-                      {appointment.notes && (
-                        <p className="mt-2 text-sm text-gray-600">
-                          Note: {appointment.notes}
-                        </p>
-                      )}
+                    ))
+                  ) : (
+                    <div className="flex flex-col items-center justify-center space-y-4 py-10">
+                      <p className="text-gray-500 text-center">
+                        No upcoming appointments. Click below to schedule one.
+                      </p>
+                      <Button
+                        variant="contained"
+                        startIcon={<Schedule />}
+                        className="border border-gray-400 px-4 py-2 rounded-lg"
+                        onClick={() =>
+                          navigate(`/scheduler`, {
+                            state: {
+                              elderId: elderId,
+                            },
+                          })
+                        }
+                      >
+                        Open Schedule Manager
+                      </Button>
                     </div>
-                  ))}
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -1130,6 +1157,17 @@ const HealthcareDashboard = () => {
         />
       )}
       <ToastContainer />
+      {loading && (
+        <div className="loader-overlay">
+          <TailSpin
+            height="100"
+            width="100"
+            color="#4fa94d"
+            ariaLabel="loading"
+            visible={true}
+          />
+        </div>
+      )}
     </div>
   );
 };

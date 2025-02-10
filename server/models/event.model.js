@@ -2,6 +2,7 @@ import mongoose from 'mongoose';
 
 const eventSchema = new mongoose.Schema({
   title: { type: String, required: [true, 'Event title is required.'] },
+  location: { type: String, required: [true, 'Event location is required.'] },
   start: { type: Date, required: [true, 'Event start time is required.'] },
   end: {
     type: Date,

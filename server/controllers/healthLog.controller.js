@@ -4,6 +4,7 @@ import { isValidObjectId } from 'mongoose';
 import Elder from '../models/elder.model.js';
 import Medication from '../models/Medication.model.js';
 import mongoose from 'mongoose';
+import Event from '../models/event.model.js';
 
 export const createHealthLog = async (req, res) => {
   const session = await mongoose.startSession(); // Start a session
@@ -353,7 +354,6 @@ export const getRecentAlerts = async (req, res) => {
 };
 
 //Get patient data
-
 export const getPatientData = async (req, res) => {
   try {
     const { elderlyId } = req.params;
@@ -375,15 +375,33 @@ export const getPatientData = async (req, res) => {
       });
     }
 
-    // Fetch health logs from the HealthLog model, sorted by logDateTime (most recent first)
+    // Fetch health logs
     const healthLogs = await HealthLog.find({ elderlyId })
-      .sort({ logDateTime: -1 }) // Sort by logDateTime in descending order
+      .sort({ logDateTime: -1 })
       .lean();
 
-    // Fetch medications from the Medication model, sorted by refillDate or createdAt (most recent first)
+    // Fetch medications
     const medications = await Medication.find({ elderlyId })
-      .sort({ createdAt: -1 }) // Sort by refillDate and createdAt in descending order
+      .sort({ createdAt: -1 })
       .lean();
+
+    // Fetch appointments (Events) from the Event model
+    const appointmentsData = await Event.find({
+      elderIds: elderlyId,
+    }).sort({ start: 1 }); // Sort by start time
+
+    // Format the appointments
+    const appointments = appointmentsData.map((event) => ({
+      date: event.start.toISOString().split('T')[0], // Format date as YYYY-MM-DD
+      time: event.start.toLocaleTimeString([], {
+        hour: '2-digit',
+        minute: '2-digit',
+      }), // Format time as HH:mm
+      type: event.title, // Use title as the appointment type
+      provider: event.instructions || 'Unknown', // Use instructions as provider if available
+      location: event.location,
+      notes: event.notes || 'No additional notes', // Default to 'No additional notes' if none are provided
+    }));
 
     // Transform patient data
     const patientData = {
@@ -407,7 +425,7 @@ export const getPatientData = async (req, res) => {
       })),
     };
 
-    // Transform health metrics (already sorted by logDateTime)
+    // Transform health metrics
     const healthMetrics = {
       bloodPressure: healthLogs.map((log) => ({
         date: log.logDateTime.toISOString().split('T')[0],
@@ -424,7 +442,7 @@ export const getPatientData = async (req, res) => {
         bmi: calculateBMI(log.weight, elder.height), // Replace with actual height if available
       })),
       glucose: healthLogs
-        .filter((log) => log.glucose) // Only include logs with glucose data
+        .filter((log) => log.glucose)
         .map((log) => ({
           date: log.logDateTime.toISOString().split('T')[0],
           value: log.glucose,
@@ -433,7 +451,7 @@ export const getPatientData = async (req, res) => {
         })),
     };
 
-    // Transform medications (already sorted by createdAt)
+    // Transform medications
     const medicationSchedule = medications.map((med) => ({
       name: med.name,
       dosage: med.dosage,
@@ -452,6 +470,7 @@ export const getPatientData = async (req, res) => {
         patientData,
         healthMetrics,
         medications: medicationSchedule,
+        appointments,
       },
     });
   } catch (error) {

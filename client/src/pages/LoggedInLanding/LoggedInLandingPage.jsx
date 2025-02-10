@@ -120,7 +120,7 @@ const LoggedInLandingPage = () => {
         </button>
         <button
           className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow text-center"
-          onClick={() => navigate('/manage-contacts')}
+          onClick={() => navigate('/caregiver')}
         >
           <h2 className="text-xl font-semibold text-gray-800 mb-2">
             Manage Care Team
@@ -250,7 +250,7 @@ const LoggedInLandingPage = () => {
           </ul>
           <button
             className="mt-4 w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600"
-            onClick={() => navigate('/add-health-log')}
+            onClick={() => navigate('/addHealthLog')}
           >
             Add New Health Log
           </button>

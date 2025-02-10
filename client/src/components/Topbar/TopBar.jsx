@@ -12,6 +12,7 @@ import {
   CalendarDays,
   ClipboardList,
   BarChart2,
+  UserPlus,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { FaHeart } from 'react-icons/fa';
@@ -212,16 +213,16 @@ export default function TopBar() {
                   <ClipboardList size={18} /> Health Logs
                 </Link>
                 <Link
-                  to="/CareAnalytics"
+                  to="/caregiver"
                   className={`nav-link ${
-                    activeLink === '/CareAnalytics' ? 'active' : ''
+                    activeLink === '/caregiver' ? 'active' : ''
                   }`}
                   onClick={() => {
-                    setActiveLink('/CareAnalytics');
+                    setActiveLink('/caregiver');
                     closeMenus();
                   }}
                 >
-                  <BarChart2 size={18} /> Care Analytics
+                  <UserPlus size={18} /> Care Management
                 </Link>
                 <div className="profile-section">
                   <button

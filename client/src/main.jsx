@@ -6,6 +6,7 @@ import store from './app/store.jsx';
 import { Provider } from 'react-redux';
 import { ThemeProvider } from '@mui/material/styles';
 import theme from './theme/index.js';
+import 'bootstrap/dist/css/bootstrap.min.css';
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>

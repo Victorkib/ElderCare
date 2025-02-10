@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTheme } from '@mui/material/styles';
 import {
@@ -50,6 +50,8 @@ import ElderConflictChecker from './ElderConflictChecker';
 import ScheduleTemplateManager from './ScheduleTemplateManager';
 import BackButton from '../custom/BackButton';
 import apiRequest from '../../utils/api';
+import { TailSpin } from 'react-loader-spinner';
+import { toast, ToastContainer } from 'react-toastify';
 
 // Base URL for the backend API
 
@@ -70,15 +72,19 @@ const ElderScheduler = () => {
   const [reminderTimes, setReminderTimes] = useState([]);
   const [eventType, setEventType] = useState('medication');
   const [eventTitle, setEventTitle] = useState('');
+  const [eventLocation, setEventLocation] = useState('');
   const [startTime, setStartTime] = useState('');
   const [endTime, setEndTime] = useState('');
   const [dosage, setDosage] = useState('');
   const [instructions, setInstructions] = useState('');
   const [notes, setNotes] = useState('');
+  const [loading, setLoading] = useState(false);
+  const calendarRef = useRef(null);
 
   // Fetch elders and events from the backend
   useEffect(() => {
     const fetchData = async () => {
+      setLoading(true);
       try {
         const eldersResponse = await apiRequest.get(`/elders/getAllElders`);
         const eventsResponse = await apiRequest.get(`/events/getAllEvents`);
@@ -107,6 +113,8 @@ const ElderScheduler = () => {
         }
       } catch (error) {
         console.error('Error fetching data:', error);
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -139,6 +147,7 @@ const ElderScheduler = () => {
   const handleEventUpdate = async () => {
     const newEvent = {
       title: eventTitle,
+      location: eventLocation,
       start: startTime,
       end: endTime,
       type: eventType,
@@ -149,13 +158,17 @@ const ElderScheduler = () => {
       reminders: remindersEnabled ? reminderTimes : [],
       notes: notes,
     };
-
+    setLoading(true);
     try {
       const response = await apiRequest.post(`/events/createEvent`, newEvent);
+      toast.success('Event Created!');
       setEvents((prev) => [...prev, response.data]);
       setOpenEventModal(false);
     } catch (error) {
+      toast.error(error.response.data.message || 'Error creating Event!');
       console.error('Error saving event:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -189,6 +202,7 @@ const ElderScheduler = () => {
     setEndTime(event.end);
     setEventType(event.type);
     setSelectedElders(event.elderIds);
+    setEventLocation(event.eventLocation || '');
     setRecurrencePattern(event.recurring);
     setRemindersEnabled(event.reminders.length > 0);
     setReminderTimes(event.reminders);
@@ -199,16 +213,30 @@ const ElderScheduler = () => {
   };
 
   const handleDeleteEvent = async (id) => {
+    setLoading(true);
     try {
-      await apiRequest.delete(`/events/${id}`);
-      setEvents((prev) => prev.filter((event) => event._id !== id));
+      const response = await apiRequest.delete(`/events/deleteEvent/${id}`);
+      toast.success('Event Deleted!');
+      if (response.status) {
+        setEvents((prev) => prev.filter((event) => event._id !== id));
+      }
     } catch (error) {
       console.error('Error deleting event:', error);
+      toast.error(error.response.data.message || 'Error Deleting Event!');
+    } finally {
+      setLoading(false);
     }
   };
 
   const columns = [
     { field: 'title', headerName: 'Title', width: 200 },
+    {
+      field: 'eventLocation',
+      headerName: 'Location',
+      width: 200,
+      valueGetter: (params) =>
+        params?.row?.eventLocation || 'No eventLocation set',
+    },
     {
       field: 'start',
       headerName: 'Start Time',
@@ -265,6 +293,13 @@ const ElderScheduler = () => {
       ),
     },
   ];
+
+  const handleViewChange = (event, newValue) => {
+    setView(newValue);
+    const calendarApi = calendarRef.current.getApi();
+    calendarApi.changeView(newValue);
+  };
+
   return (
     <Grid container spacing={3} sx={{ p: 3, mt: 4 }}>
       {/* Left Sidebar */}
@@ -332,7 +367,7 @@ const ElderScheduler = () => {
       </Grid>
 
       {/* Main Calendar Area */}
-      <Grid item xs={12} md={6}>
+      <Grid item xs={12} md={9}>
         <Paper
           sx={{
             p: 2,
@@ -341,7 +376,7 @@ const ElderScheduler = () => {
           }}
         >
           <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-            <Tabs value={view} onChange={(e, v) => setView(v)}>
+            <Tabs value={view} onChange={handleViewChange}>
               <Tab
                 label="Month"
                 value="dayGridMonth"
@@ -360,6 +395,7 @@ const ElderScheduler = () => {
           </Box>
 
           <FullCalendar
+            ref={calendarRef}
             plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
             initialView={view}
             events={events}
@@ -386,6 +422,11 @@ const ElderScheduler = () => {
                       </Typography>
                       <Typography variant="body2">
                         Type: {eventInfo.event.extendedProps.type}
+                      </Typography>
+                      <Typography variant="body2">
+                        Location:{' '}
+                        {eventInfo.event.extendedProps.location ||
+                          'No location set'}
                       </Typography>
                       <Typography variant="body2">
                         Elders:{' '}
@@ -426,13 +467,13 @@ const ElderScheduler = () => {
                 </Tooltip>
               );
             }}
-            height="calc(100vh - 250px)"
+            height="calc(100vh - 150px)"
           />
         </Paper>
       </Grid>
 
       {/* Right Sidebar */}
-      <Grid item xs={12} md={3}>
+      {/* <Grid item xs={12} md={3}>
         <Paper
           sx={{
             p: 2,
@@ -488,10 +529,10 @@ const ElderScheduler = () => {
             3 conflicts detected
           </Typography>
         </Paper>
-      </Grid>
+      </Grid> */}
 
       {/* Event Management Table - Below the Three Columns */}
-      <Grid item xs={12} sx={{ mt: 4 }}>
+      <Grid item xs={12} sx={{ mt: 0 }}>
         <Paper sx={{ p: 2 }}>
           <Typography variant="h6" gutterBottom>
             Event Management
@@ -533,6 +574,15 @@ const ElderScheduler = () => {
                     value={eventTitle}
                     onChange={(e) => setEventTitle(e.target.value)}
                     required
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <TextField
+                    label="Location"
+                    fullWidth
+                    value={eventLocation}
+                    onChange={(e) => setEventLocation(e.target.value)}
+                    placeholder="Enter event event location"
                   />
                 </Grid>
                 <Grid item xs={6}>
@@ -688,6 +738,18 @@ const ElderScheduler = () => {
           </Button>
         </DialogActions>
       </Dialog>
+      {loading && (
+        <div className="loader-overlay">
+          <TailSpin
+            height="100"
+            width="100"
+            color="#4fa94d"
+            ariaLabel="loading"
+            visible={true}
+          />
+        </div>
+      )}
+      <ToastContainer />
     </Grid>
   );
 };

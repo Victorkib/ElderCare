@@ -374,7 +374,6 @@ const OrganizedElders = () => {
         >
           View Details
         </MenuItem>
-        <MenuItem onClick={handleMenuClose}>Update Care Plan</MenuItem>
         <MenuItem
           onClick={() => {
             navigate('/scheduler', {
@@ -386,6 +385,7 @@ const OrganizedElders = () => {
         >
           Schedule Checkup
         </MenuItem>
+        <MenuItem onClick={handleMenuClose}>Update Care Plan</MenuItem>
         <MenuItem onClick={handleMenuClose} sx={{ color: 'error.main' }}>
           Mark Critical
         </MenuItem>

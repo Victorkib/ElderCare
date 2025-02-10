@@ -1,0 +1,687 @@
+import React, { useState } from 'react';
+import {
+  Search,
+  Plus,
+  Filter,
+  Calendar,
+  MessageSquare,
+  Bell,
+  Clock,
+  Activity,
+  Users,
+  FileText,
+  CheckSquare,
+  AlertTriangle,
+  X,
+} from 'lucide-react';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from 'recharts';
+
+const CaregiverManagement = () => {
+  // State management
+  const [activeTab, setActiveTab] = useState('dashboard');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [scheduleView, setScheduleView] = useState('week');
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [showNewCaregiverDialog, setShowNewCaregiverDialog] = useState(false);
+  const [newCaregiver, setNewCaregiver] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+    specialization: '',
+    certifications: [],
+    availability: {
+      monday: { morning: false, afternoon: false, evening: false },
+      tuesday: { morning: false, afternoon: false, evening: false },
+      wednesday: { morning: false, afternoon: false, evening: false },
+      thursday: { morning: false, afternoon: false, evening: false },
+      friday: { morning: false, afternoon: false, evening: false },
+      saturday: { morning: false, afternoon: false, evening: false },
+      sunday: { morning: false, afternoon: false, evening: false },
+    },
+    emergencyContact: {
+      name: '',
+      relationship: '',
+      phone: '',
+    },
+    documents: [], // For storing document references
+    hourlyRate: '',
+    startDate: '',
+    backgroundCheck: false,
+    languages: [],
+    skills: [],
+    preferences: {
+      maxPatientsPerDay: 0,
+      preferredAgeGroup: '',
+      travelDistance: 0,
+    },
+  });
+
+  // Sample schedule data - would come from backend
+  const scheduleData = [
+    {
+      id: 1,
+      caregiverId: 1,
+      patientId: 1,
+      startTime: '2024-02-10T09:00:00',
+      endTime: '2024-02-10T17:00:00',
+      type: 'Regular Care',
+      status: 'Confirmed',
+    },
+    // More schedule entries...
+  ];
+
+  const handleAddCaregiver = async (e) => {
+    e.preventDefault();
+    try {
+      // API call to backend
+      // const response = await fetch('/api/caregivers', {
+      //   method: 'POST',
+      //   headers: {
+      //     'Content-Type': 'application/json',
+      //   },
+      //   body: JSON.stringify(newCaregiver)
+      // });
+      // const data = await response.json();
+
+      // Reset form and close dialog
+      setNewCaregiver({
+        firstName: '',
+        lastName: '',
+        email: '',
+        // ... reset other fields
+      });
+      setShowNewCaregiverDialog(false);
+
+      // Refresh caregiver list
+      // fetchCaregivers();
+    } catch (error) {
+      console.error('Error adding caregiver:', error);
+      // Show error message to user
+    }
+  };
+
+  const NewCaregiverForm = () => (
+    <div className="space-y-4">
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-medium mb-1">First Name</label>
+          <input
+            type="text"
+            className="w-full p-2 border rounded"
+            value={newCaregiver.firstName}
+            onChange={(e) =>
+              setNewCaregiver({ ...newCaregiver, firstName: e.target.value })
+            }
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium mb-1">Last Name</label>
+          <input
+            type="text"
+            className="w-full p-2 border rounded"
+            value={newCaregiver.lastName}
+            onChange={(e) =>
+              setNewCaregiver({ ...newCaregiver, lastName: e.target.value })
+            }
+          />
+        </div>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium mb-1">Email</label>
+        <input
+          type="email"
+          className="w-full p-2 border rounded"
+          value={newCaregiver.email}
+          onChange={(e) =>
+            setNewCaregiver({ ...newCaregiver, email: e.target.value })
+          }
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium mb-1">Phone</label>
+        <input
+          type="tel"
+          className="w-full p-2 border rounded"
+          value={newCaregiver.phone}
+          onChange={(e) =>
+            setNewCaregiver({ ...newCaregiver, phone: e.target.value })
+          }
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium mb-1">Specialization</label>
+        <select
+          className="w-full p-2 border rounded"
+          value={newCaregiver.specialization}
+          onChange={(e) =>
+            setNewCaregiver({ ...newCaregiver, specialization: e.target.value })
+          }
+        >
+          <option value="">Select Specialization</option>
+          <option value="geriatric">Geriatric Care</option>
+          <option value="dementia">Dementia Care</option>
+          <option value="palliative">Palliative Care</option>
+          <option value="disability">Disability Care</option>
+        </select>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium mb-1">Certifications</label>
+        <div className="space-y-2">
+          {['RN', 'LPN', 'CNA', 'HHA', 'First Aid', 'CPR'].map((cert) => (
+            <label key={cert} className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                checked={newCaregiver.certifications.includes(cert)}
+                onChange={(e) => {
+                  const updatedCerts = e.target.checked
+                    ? [...newCaregiver.certifications, cert]
+                    : newCaregiver.certifications.filter((c) => c !== cert);
+                  setNewCaregiver({
+                    ...newCaregiver,
+                    certifications: updatedCerts,
+                  });
+                }}
+              />
+              <span>{cert}</span>
+            </label>
+          ))}
+        </div>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium mb-1">Availability</label>
+        <div className="grid grid-cols-7 gap-2">
+          {Object.entries(newCaregiver.availability).map(([day, shifts]) => (
+            <div key={day} className="space-y-1">
+              <div className="font-medium text-sm">
+                {day.charAt(0).toUpperCase() + day.slice(1)}
+              </div>
+              {Object.entries(shifts).map(([shift, checked]) => (
+                <label key={shift} className="flex items-center space-x-1">
+                  <input
+                    type="checkbox"
+                    checked={checked}
+                    onChange={(e) => {
+                      setNewCaregiver({
+                        ...newCaregiver,
+                        availability: {
+                          ...newCaregiver.availability,
+                          [day]: {
+                            ...newCaregiver.availability[day],
+                            [shift]: e.target.checked,
+                          },
+                        },
+                      });
+                    }}
+                  />
+                  <span className="text-xs">{shift}</span>
+                </label>
+              ))}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-medium mb-1">
+            Hourly Rate ($)
+          </label>
+          <input
+            type="number"
+            className="w-full p-2 border rounded"
+            value={newCaregiver.hourlyRate}
+            onChange={(e) =>
+              setNewCaregiver({ ...newCaregiver, hourlyRate: e.target.value })
+            }
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium mb-1">Start Date</label>
+          <input
+            type="date"
+            className="w-full p-2 border rounded"
+            value={newCaregiver.startDate}
+            onChange={(e) =>
+              setNewCaregiver({ ...newCaregiver, startDate: e.target.value })
+            }
+          />
+        </div>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium mb-1">
+          Emergency Contact
+        </label>
+        <div className="space-y-2">
+          <input
+            type="text"
+            placeholder="Name"
+            className="w-full p-2 border rounded"
+            value={newCaregiver.emergencyContact.name}
+            onChange={(e) =>
+              setNewCaregiver({
+                ...newCaregiver,
+                emergencyContact: {
+                  ...newCaregiver.emergencyContact,
+                  name: e.target.value,
+                },
+              })
+            }
+          />
+          <input
+            type="text"
+            placeholder="Relationship"
+            className="w-full p-2 border rounded"
+            value={newCaregiver.emergencyContact.relationship}
+            onChange={(e) =>
+              setNewCaregiver({
+                ...newCaregiver,
+                emergencyContact: {
+                  ...newCaregiver.emergencyContact,
+                  relationship: e.target.value,
+                },
+              })
+            }
+          />
+          <input
+            type="tel"
+            placeholder="Phone"
+            className="w-full p-2 border rounded"
+            value={newCaregiver.emergencyContact.phone}
+            onChange={(e) =>
+              setNewCaregiver({
+                ...newCaregiver,
+                emergencyContact: {
+                  ...newCaregiver.emergencyContact,
+                  phone: e.target.value,
+                },
+              })
+            }
+          />
+        </div>
+      </div>
+
+      <div className="flex justify-end space-x-2">
+        <button
+          className="px-4 py-2 border rounded"
+          onClick={() => setShowNewCaregiverDialog(false)}
+        >
+          Cancel
+        </button>
+        <button
+          className="px-4 py-2 bg-blue-500 text-white rounded"
+          onClick={handleAddCaregiver}
+        >
+          Add Caregiver
+        </button>
+      </div>
+    </div>
+  );
+
+  const ScheduleComponent = () => {
+    const hours = Array.from({ length: 24 }, (_, i) => i);
+    const days = [
+      'Monday',
+      'Tuesday',
+      'Wednesday',
+      'Thursday',
+      'Friday',
+      'Saturday',
+      'Sunday',
+    ];
+
+    const getScheduleForTimeSlot = (day, hour) => {
+      return scheduleData.filter((schedule) => {
+        const scheduleDate = new Date(schedule.startTime);
+        return (
+          scheduleDate.getDay() === days.indexOf(day) &&
+          scheduleDate.getHours() === hour
+        );
+      });
+    };
+
+    return (
+      <div className="mt-4">
+        <div className="flex justify-between items-center mb-4">
+          <div className="flex space-x-2">
+            <button
+              className={`px-4 py-2 rounded ${
+                scheduleView === 'day'
+                  ? 'bg-blue-500 text-white'
+                  : 'bg-gray-100'
+              }`}
+              onClick={() => setScheduleView('day')}
+            >
+              Day
+            </button>
+            <button
+              className={`px-4 py-2 rounded ${
+                scheduleView === 'week'
+                  ? 'bg-blue-500 text-white'
+                  : 'bg-gray-100'
+              }`}
+              onClick={() => setScheduleView('week')}
+            >
+              Week
+            </button>
+            <button
+              className={`px-4 py-2 rounded ${
+                scheduleView === 'month'
+                  ? 'bg-blue-500 text-white'
+                  : 'bg-gray-100'
+              }`}
+              onClick={() => setScheduleView('month')}
+            >
+              Month
+            </button>
+          </div>
+          <div>
+            <input
+              type="date"
+              className="p-2 border rounded"
+              value={selectedDate.toISOString().split('T')[0]}
+              onChange={(e) => setSelectedDate(new Date(e.target.value))}
+            />
+          </div>
+        </div>
+
+        <div className="overflow-x-auto">
+          <div className="min-w-max">
+            <div className="grid grid-cols-8 gap-2 mb-2">
+              <div className="w-20"></div>
+              {days.map((day) => (
+                <div key={day} className="font-medium text-center">
+                  {day}
+                </div>
+              ))}
+            </div>
+            <div className="space-y-1">
+              {hours.map((hour) => (
+                <div key={hour} className="grid grid-cols-8 gap-2">
+                  <div className="w-20 text-right pr-2">
+                    {hour.toString().padStart(2, '0')}:00
+                  </div>
+                  {days.map((day) => (
+                    <div
+                      key={`${day}-${hour}`}
+                      className="h-12 border rounded p-1"
+                    >
+                      {getScheduleForTimeSlot(day, hour).map((schedule) => (
+                        <div
+                          key={schedule.id}
+                          className="text-xs bg-blue-100 rounded p-1"
+                        >
+                          {schedule.type}
+                        </div>
+                      ))}
+                    </div>
+                  ))}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  return (
+    <div className="p-6 max-w-7xl mx-auto">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold mb-2">Caregiver Management</h1>
+        <div className="flex space-x-4">
+          <button
+            className={`px-4 py-2 rounded ${
+              activeTab === 'dashboard'
+                ? 'bg-blue-500 text-white'
+                : 'bg-gray-100'
+            }`}
+            onClick={() => setActiveTab('dashboard')}
+          >
+            Dashboard
+          </button>
+          <button
+            className={`px-4 py-2 rounded ${
+              activeTab === 'caregivers'
+                ? 'bg-blue-500 text-white'
+                : 'bg-gray-100'
+            }`}
+            onClick={() => setActiveTab('caregivers')}
+          >
+            Caregivers
+          </button>
+          <button
+            className={`px-4 py-2 rounded ${
+              activeTab === 'schedule'
+                ? 'bg-blue-500 text-white'
+                : 'bg-gray-100'
+            }`}
+            onClick={() => setActiveTab('schedule')}
+          >
+            Schedule
+          </button>
+        </div>
+      </div>
+
+      {/* Previous code remains exactly the same until the last line */}
+
+      {activeTab === 'schedule' && <ScheduleComponent />}
+
+      {/* Add Caregiver Dialog */}
+      <Dialog
+        open={showNewCaregiverDialog}
+        onOpenChange={setShowNewCaregiverDialog}
+      >
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Add New Caregiver</DialogTitle>
+            <DialogDescription>
+              Enter the caregiver's information below.
+            </DialogDescription>
+          </DialogHeader>
+          <NewCaregiverForm />
+        </DialogContent>
+      </Dialog>
+
+      {/* Dashboard Content */}
+      {activeTab === 'dashboard' && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Performance Overview</CardTitle>
+              <CardDescription>Monthly metrics and trends</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={performanceData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="month" />
+                    <YAxis />
+                    <Tooltip />
+                    <Line
+                      type="monotone"
+                      dataKey="completionRate"
+                      stroke="#8884d8"
+                      name="Completion Rate"
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="responseTime"
+                      stroke="#82ca9d"
+                      name="Response Time"
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="patientSatisfaction"
+                      stroke="#ffc658"
+                      name="Patient Satisfaction"
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Quick Stats</CardTitle>
+              <CardDescription>Key metrics overview</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <span>Active Caregivers</span>
+                  <span className="font-bold">24</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span>Total Patients</span>
+                  <span className="font-bold">89</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span>Average Rating</span>
+                  <span className="font-bold">4.8/5.0</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span>Open Shifts</span>
+                  <span className="font-bold">12</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Urgent Alerts</CardTitle>
+              <CardDescription>Requires immediate attention</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <Alert>
+                  <AlertTriangle className="h-4 w-4" />
+                  <AlertDescription>
+                    2 caregivers have expired certifications
+                  </AlertDescription>
+                </Alert>
+                <Alert>
+                  <AlertTriangle className="h-4 w-4" />
+                  <AlertDescription>
+                    3 understaffed shifts in next 48 hours
+                  </AlertDescription>
+                </Alert>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Caregivers List Content */}
+      {activeTab === 'caregivers' && (
+        <div className="space-y-4">
+          <div className="flex justify-between items-center mb-6">
+            <div className="flex items-center space-x-2">
+              <input
+                type="text"
+                placeholder="Search caregivers..."
+                className="p-2 border rounded"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+              <Filter className="h-5 w-5 text-gray-500 cursor-pointer" />
+            </div>
+            <button
+              className="bg-blue-500 text-white px-4 py-2 rounded flex items-center space-x-2"
+              onClick={() => setShowNewCaregiverDialog(true)}
+            >
+              <Plus className="h-4 w-4" />
+              <span>Add Caregiver</span>
+            </button>
+          </div>
+
+          <div className="grid gap-4">
+            {caregivers.map((caregiver) => (
+              <Card key={caregiver.id}>
+                <CardContent className="p-6">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h3 className="font-bold text-lg">{caregiver.name}</h3>
+                      <p className="text-gray-600">
+                        {caregiver.specialization}
+                      </p>
+                      <div className="mt-2 space-y-1">
+                        <div className="flex items-center space-x-2">
+                          <Users className="h-4 w-4 text-gray-500" />
+                          <span>{caregiver.patients} patients</span>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Clock className="h-4 w-4 text-gray-500" />
+                          <span>{caregiver.availability}</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex space-x-2">
+                      <button className="p-2 text-blue-500 hover:bg-blue-50 rounded">
+                        <Calendar className="h-5 w-5" />
+                      </button>
+                      <button className="p-2 text-green-500 hover:bg-green-50 rounded">
+                        <MessageSquare className="h-5 w-5" />
+                      </button>
+                      <button className="p-2 text-purple-500 hover:bg-purple-50 rounded">
+                        <FileText className="h-5 w-5" />
+                      </button>
+                    </div>
+                  </div>
+                  <div className="mt-4">
+                    <div className="flex flex-wrap gap-2">
+                      {caregiver.certifications.map((cert, index) => (
+                        <span
+                          key={index}
+                          className="bg-gray-100 px-2 py-1 rounded text-sm"
+                        >
+                          {cert}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default CaregiverManagement;
