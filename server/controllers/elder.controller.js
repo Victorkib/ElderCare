@@ -1,3 +1,5 @@
+import { isValidObjectId } from 'mongoose';
+import Caregiver from '../models/caregiver.model.js';
 import Elder from '../models/elder.model.js';
 import Event from '../models/event.model.js';
 import HealthLog from '../models/healthLog.model.js';
@@ -486,5 +488,69 @@ const determineCareLevel = (healthStatus) => {
       return 'Low';
     default:
       return 'Not specified';
+  }
+};
+
+export const assignCaregiver = async (req, res) => {
+  try {
+    const { elderId } = req.params;
+    const { caregiverId } = req.body;
+
+    // Validate IDs
+    if (!isValidObjectId(elderId) || !isValidObjectId(caregiverId)) {
+      return res
+        .status(400)
+        .json({ success: false, error: 'Invalid ID format' });
+    }
+
+    // Check if the elder exists
+    const elder = await Elder.findById(elderId);
+    if (!elder) {
+      return res.status(404).json({ success: false, error: 'Elder not found' });
+    }
+
+    // Check if the caregiver exists
+    const caregiver = await Caregiver.findById(caregiverId);
+    if (!caregiver) {
+      return res
+        .status(404)
+        .json({ success: false, error: 'Caregiver not found' });
+    }
+
+    // Check how many elders the caregiver is already assigned to
+    const assignedCount = await Elder.countDocuments({
+      assignedCaregivers: caregiverId,
+    });
+    if (assignedCount >= 5) {
+      return res.status(400).json({
+        success: false,
+        error: 'Caregiver has reached the maximum limit of 5 elders',
+      });
+    }
+
+    // Check if the caregiver is already assigned to this elder
+    if (elder.assignedCaregivers.includes(caregiverId)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Caregiver already assigned to this elder',
+      });
+    }
+
+    // Assign the caregiver (adding to the array)
+    elder.assignedCaregivers.push(caregiverId);
+    await elder.save();
+
+    res.status(200).json({
+      success: true,
+      message: 'Caregiver assigned successfully',
+      assignedCaregivers: elder.assignedCaregivers,
+    });
+  } catch (error) {
+    console.error('Error assigning caregiver:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Internal server error',
+      message: error.message,
+    });
   }
 };

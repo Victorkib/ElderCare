@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useTheme } from '@mui/material/styles';
 import {
   Box,
@@ -51,10 +51,7 @@ import { TailSpin } from 'react-loader-spinner';
 // import { Upload } from '@mui/icons-material';
 
 const ElderProfile = () => {
-  const location = useLocation();
-  const [elderData, setElderData] = useState(
-    location?.state?.elderData || null
-  );
+  const [elderData, setElderData] = useState();
   const [upcomingEvents, setUpcomongEvents] = useState();
   const { elderId } = useParams();
   const theme = useTheme();
@@ -64,35 +61,29 @@ const ElderProfile = () => {
 
   useEffect(() => {
     const fetchElderData = async () => {
-      if (!elderData && elderId) {
-        try {
-          const response = await apiRequest.get(
-            `/elders/getSingleElder/${elderId}`
-          );
-          if (response.status) {
-            setElderData(response.data.elder);
-            setUpcomongEvents(response.data.upcomingEvents);
-            console.log('elderData: ', response.data);
-          }
-        } catch (error) {
-          toast.error(
-            error.response?.data?.message || 'Failed to fetch elder data'
-          );
+      try {
+        const response = await apiRequest.get(
+          `/elders/getSingleElder/${elderId}`
+        );
+        if (response.status) {
+          setElderData(response.data.elder);
+          setUpcomongEvents(response.data.upcomingEvents);
+          console.log('elderData: ', response.data);
         }
+      } catch (error) {
+        toast.error(
+          error.response?.data?.message || 'Failed to fetch elder data'
+        );
       }
     };
 
     fetchElderData();
-  }, [elderData, elderId]);
+  }, []);
 
   // Sample data - replace with actual API calls
   const elder = {
     ...elderData,
     upcomingEvents,
-    careTeam: [
-      { name: 'Nurse Jane', role: 'Primary Care' },
-      { name: 'Dr. Smith', role: 'Physician' },
-    ],
   };
 
   const handleTabChange = (event, newValue) => {
@@ -238,16 +229,16 @@ const ElderProfile = () => {
             <Paper sx={{ p: 2, textAlign: 'center' }}>
               <Typography variant="h6">Upcoming</Typography>
               <Typography variant="h4" color="secondary">
-                3
+                {elder?.upcomingEvents?.length}
               </Typography>
-              <Typography variant="body2">Appointments</Typography>
+              <Typography variant="body2">Events</Typography>
             </Paper>
           </Grid>
           <Grid item xs={12} md={3}>
             <Paper sx={{ p: 2, textAlign: 'center' }}>
               <Typography variant="h6">Care Team</Typography>
               <Typography variant="h4" color="info">
-                {elder.careTeam.length}
+                {elder.assignedCaregivers.length}
               </Typography>
               <Typography variant="body2">Members</Typography>
             </Paper>
@@ -583,14 +574,14 @@ const ElderProfile = () => {
                   Care Team
                 </Typography>
                 <List dense>
-                  {elder.careTeam?.map((member, index) => (
+                  {elder.assignedCaregivers?.map((member, index) => (
                     <ListItem key={index}>
                       <ListItemAvatar>
                         <Avatar>{member.name[0]}</Avatar>
                       </ListItemAvatar>
                       <ListItemText
                         primary={member.name}
-                        secondary={member.role}
+                        secondary={member.specialization}
                       />
                     </ListItem>
                   ))}

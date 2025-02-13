@@ -367,7 +367,9 @@ export const getPatientData = async (req, res) => {
     }
 
     // Fetch patient data from the Elder model
-    const elder = await Elder.findById(elderlyId).lean();
+    const elder = await Elder.findById(elderlyId)
+      .populate('assignedCaregivers')
+      .lean();
     if (!elder) {
       return res.status(404).json({
         success: false,
@@ -423,6 +425,18 @@ export const getPatientData = async (req, res) => {
         phone: contact.phone,
         email: contact.email,
       })),
+      careTeam:
+        elder?.assignedCaregivers?.length > 0
+          ? elder.assignedCaregivers.map((caregiver) => ({
+              id: caregiver._id,
+              name: caregiver.name,
+              phone: caregiver.phone,
+              available: caregiver.availability,
+              role: caregiver.specialization,
+              email: caregiver.email,
+              status: caregiver.status,
+            }))
+          : [],
     };
 
     // Transform health metrics

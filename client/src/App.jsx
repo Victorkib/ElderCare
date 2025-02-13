@@ -24,6 +24,9 @@ import ElderScheduler from './components/AllElders/ElderScheduler';
 import OrganizedElders from './components/AllElders/OrganizedElders';
 import CaregiverManagementDashboard from './components/CareGivers/CaregiverManagementDashboard';
 import NotFound from './components/NotFound/NotFound';
+import ElderlyCareManagementSystem from './components/CareGivers/ElderlyCareManagementSystem';
+import ClaudeCaregiverManagement from './components/CareGivers/CareGiverMngt/ClaudeCaregiverManagement';
+import Research from './components/CareGivers/CareGiveSecond/research';
 
 function App() {
   return (
@@ -50,9 +53,17 @@ function App() {
               <Route path="/organizedElders" element={<OrganizedElders />} />
               <Route path="/indiv/:elderId" element={<HealthcareDashboard />} />
               <Route
-                path="/caregiver"
+                path="/caregiver" //using this for now
+                element={<ClaudeCaregiverManagement />}
+              />
+              {/* START OF TESTING COMPONENTS */}
+              <Route
+                path="/care" //potential
                 element={<CaregiverManagementDashboard />}
               />
+              <Route path="/ccc" element={<Research />} />
+              <Route path="/cares" element={<ElderlyCareManagementSystem />} />
+              {/* END OF TESTING COMPONENTS*/}
               {/*  Currently not being used*/}
               <Route path="/allElders" element={<ViewAllElderlyUsers />} />
               <Route path="/CareAnalytics" element={<CareAnalytics />} />{' '}

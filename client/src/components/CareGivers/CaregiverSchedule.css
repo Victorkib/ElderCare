@@ -1,0 +1,41 @@
+.schedule-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 20px;
+}
+
+.calendar-section {
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+}
+
+.calendar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.current-month {
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.events {
+  list-style: none;
+  padding: 0;
+}
+
+.events li {
+  margin: 4px 0;
+}
+
+.upcoming-events {
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+}

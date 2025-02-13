@@ -14,6 +14,7 @@ import {
   getMedicalProfile,
   // getAllOrganizedElders,
   getAllEldersDetails,
+  assignCaregiver,
 } from '../controllers/elder.controller.js';
 
 const router = express.Router();
@@ -35,5 +36,8 @@ router.patch('/:id/care-preferences', updateCarePreferences);
 router.get('/:elderId/profile', getPatientProfile);
 router.get('/:elderId/medical-profile', getMedicalProfile);
 router.get('/getEldersData/elders', getAllEldersDetails);
+
+//route for editing assinged care giver to elder
+router.patch('/assignCaregiver/:elderId', assignCaregiver);
 
 export default router;

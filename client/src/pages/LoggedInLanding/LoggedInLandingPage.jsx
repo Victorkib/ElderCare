@@ -222,7 +222,7 @@ const LoggedInLandingPage = () => {
           </ul>
           <button
             className="mt-4 w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600"
-            onClick={() => navigate('/set-reminder')}
+            onClick={() => navigate('/scheduler')}
           >
             Add New Reminder
           </button>

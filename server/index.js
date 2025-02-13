@@ -12,6 +12,7 @@ import elderRoutes from './routes/elder.Routes.js';
 import healthLog from './routes/healthLog.routes.js';
 import elderNotesRoutes from './routes/elderNotes.routes.js';
 import eventRoutes from './routes/event.routes.js';
+import caregiversRoutes from './routes/caregiver.routes.js';
 
 dotenv.config();
 
@@ -60,6 +61,7 @@ app.use('/api/elders', elderRoutes);
 app.use('/api/elderHealthLog', healthLog);
 app.use('/api/elderNotes', elderNotesRoutes);
 app.use('/api/events', eventRoutes);
+app.use('/api/caregivers', caregiversRoutes);
 
 // Handle any other routes and serve index.html (React's entry point)
 app.get('*', (req, res) => {

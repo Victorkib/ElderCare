@@ -8,36 +8,21 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  Legend,
   ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
 } from 'recharts';
 import {
   Download,
   Plus,
   Clock,
-  Edit2,
-  Trash2,
   AlertCircle,
-  Phone,
-  Mic,
-  Volume2,
-  Languages,
   FileText,
   TrendingUp,
   Calendar,
-  Activity,
   Bell,
   UserPlus,
   Filter,
-  MoreVertical,
   ChevronDown,
   Heart,
-  Brain,
-  Thermometer,
-  Camera,
   PlusCircle,
   X,
   ChevronLeft,
@@ -172,29 +157,7 @@ const HealthcareDashboard = () => {
   ]);
 
   // Care team with availability status
-  const careTeam = [
-    {
-      name: 'Dr. Sarah Johnson',
-      role: 'Primary Physician',
-      available: true,
-      nextVisit: '2025-02-05 10:00',
-      contact: '555-0123',
-    },
-    {
-      name: 'Nurse Michael Chen',
-      role: 'Primary Nurse',
-      available: true,
-      shift: '07:00-19:00',
-      contact: '555-0124',
-    },
-    {
-      name: 'Dr. Emily Williams',
-      role: 'Cardiologist',
-      available: false,
-      nextVisit: '2025-02-10 14:00',
-      contact: '555-0125',
-    },
-  ];
+  const [careTeam, setCareTeam] = useState([]);
 
   // Recent activities and alerts
   const recentAlerts = [
@@ -236,6 +199,7 @@ const HealthcareDashboard = () => {
         const { patientData, healthMetrics, medications, appointments } =
           response.data.data;
         setPatientData(patientData);
+        setCareTeam(patientData.careTeam);
         setHealthMetrics(healthMetrics);
         setMedications(medications);
         appointments.length > 0 && setAppointments(appointments);
@@ -272,6 +236,49 @@ const HealthcareDashboard = () => {
     setCurrentPage(pageNumber);
   };
 
+  const [showCaregiverModal, setShowCaregiverModal] = useState(false);
+  const [caregivers, setCaregivers] = useState([]);
+  const [selectedCaregiver, setSelectedCaregiver] = useState(null);
+
+  // Fetch caregivers from backend
+  const fetchCaregivers = async () => {
+    try {
+      const response = await apiRequest.get('/caregivers');
+      setCaregivers(response.data.caregivers);
+    } catch (error) {
+      toast.error(
+        error?.response?.data?.message || 'Failed to fetch caregivers.'
+      );
+    }
+  };
+
+  // Assign caregiver to elder
+  const assignCaregiver = async () => {
+    if (!selectedCaregiver) {
+      toast.error('Please select a caregiver.');
+      return;
+    }
+
+    try {
+      await apiRequest.patch(`/elders/assignCaregiver/${elderId}`, {
+        caregiverId: selectedCaregiver,
+      });
+      await fetchUserGeneralData();
+      toast.success('Caregiver assigned successfully.');
+      setShowCaregiverModal(false);
+    } catch (error) {
+      toast.error(
+        error?.response?.data?.message || 'Failed to assign caregiver.'
+      );
+    }
+  };
+
+  // Open modal and fetch caregivers
+  useEffect(() => {
+    if (showCaregiverModal) fetchCaregivers();
+  }, [showCaregiverModal]);
+
+  // eslint-disable-next-line react/prop-types
   const VitalsModal = ({ onClose, onSubmit, elderId }) => {
     const [submitStatus, setSubmitStatus] = useState(null);
     const [formData, setFormData] = useState({
@@ -924,34 +931,56 @@ const HealthcareDashboard = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {careTeam.map((member) => (
-                    <div
-                      key={member.name}
-                      className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg"
-                    >
-                      <div className="flex-1">
-                        <p className="font-medium">{member.name}</p>
-                        <p className="text-sm text-gray-500">{member.role}</p>
-                        <p className="text-sm text-gray-500 mt-1">
-                          Next visit: {member.nextVisit || 'Not scheduled'}
-                        </p>
-                      </div>
-                      <div className="flex flex-col items-end">
-                        <span
-                          className={`px-2 py-1 rounded-full text-sm ${
-                            member.available
-                              ? 'bg-green-100 text-green-800'
-                              : 'bg-gray-100 text-gray-800'
-                          }`}
+                  {careTeam.length > 0 ? (
+                    <>
+                      {careTeam.map((member) => (
+                        <div
+                          key={member.name}
+                          className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg"
                         >
-                          {member.available ? 'Available' : 'Unavailable'}
-                        </span>
-                        <button className="mt-2 text-blue-600 hover:text-blue-800">
-                          Contact
-                        </button>
-                      </div>
+                          <div className="flex-1">
+                            <p className="font-medium">{member.name}</p>
+                            <p className="text-sm text-gray-500">
+                              {member.role}
+                            </p>
+                            <p className="text-sm text-gray-500 mt-1">
+                              Email: {member.email || 'Not set'}
+                            </p>
+                          </div>
+                          <div className="flex flex-col items-end">
+                            <span
+                              className={`px-2 py-1 rounded-full text-sm ${
+                                member.status == 'Active'
+                                  ? 'bg-green-100 text-green-800'
+                                  : 'bg-gray-100 text-gray-800'
+                              }`}
+                            >
+                              {member.status == 'Active'
+                                ? 'Active'
+                                : 'InActive'}
+                            </span>
+                            <button className="mt-2 text-blue-600 hover:text-blue-800">
+                              Contact
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center space-y-4 py-10">
+                      <p className="text-gray-500 text-center">
+                        No assigned caregivers. Click below to assign one.
+                      </p>
+                      <Button
+                        variant="contained"
+                        startIcon={<UserPlus />}
+                        className="border border-gray-400 px-4 py-2 rounded-lg"
+                        onClick={() => setShowCaregiverModal(true)}
+                      >
+                        Assign Caregiver
+                      </Button>
                     </div>
-                  ))}
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -1156,6 +1185,59 @@ const HealthcareDashboard = () => {
           elderId={elderId}
         />
       )}
+
+      {showCaregiverModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-bold">Assign Caregiver</h2>
+              <button
+                onClick={() => setShowCaregiverModal(false)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <X size={24} />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              {caregivers.length > 0 ? (
+                caregivers.map((caregiver) => (
+                  <div
+                    key={caregiver._id}
+                    className={`p-3 border rounded-lg cursor-pointer ${
+                      selectedCaregiver === caregiver._id ? 'bg-blue-100' : ''
+                    }`}
+                    onClick={() => setSelectedCaregiver(caregiver._id)}
+                  >
+                    <p className="font-medium">{caregiver.name}</p>
+                    <p className="text-sm text-gray-500">
+                      {caregiver.specialization}
+                    </p>
+                  </div>
+                ))
+              ) : (
+                <p className="text-gray-500">No caregivers available.</p>
+              )}
+            </div>
+
+            <div className="flex justify-end gap-4 mt-4">
+              <button
+                onClick={() => setShowCaregiverModal(false)}
+                className="px-4 py-2 border rounded-lg hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={assignCaregiver}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              >
+                Assign
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <ToastContainer />
       {loading && (
         <div className="loader-overlay">

@@ -1,4 +1,3 @@
-// models/Elder.js
 import mongoose from 'mongoose';
 
 const elderSchema = new mongoose.Schema(
@@ -68,6 +67,14 @@ const elderSchema = new mongoose.Schema(
         email: String,
         address: String,
         isLegalGuardian: Boolean,
+      },
+    ],
+
+    // Caregiver Assignment (UPDATED TO SUPPORT MULTIPLE CAREGIVERS)
+    assignedCaregivers: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Caregiver', // Reference to the Caregiver model
       },
     ],
 
