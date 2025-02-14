@@ -358,7 +358,6 @@ export const getPatientData = async (req, res) => {
   try {
     const { elderlyId } = req.params;
 
-    // Validate elderlyId format
     if (!isValidObjectId(elderlyId)) {
       return res.status(400).json({
         success: false,
@@ -366,7 +365,6 @@ export const getPatientData = async (req, res) => {
       });
     }
 
-    // Fetch patient data from the Elder model
     const elder = await Elder.findById(elderlyId)
       .populate('assignedCaregivers')
       .lean();
@@ -377,47 +375,43 @@ export const getPatientData = async (req, res) => {
       });
     }
 
-    // Fetch health logs
     const healthLogs = await HealthLog.find({ elderlyId })
       .sort({ logDateTime: -1 })
+      .populate('medications')
       .lean();
 
-    // Fetch medications
     const medications = await Medication.find({ elderlyId })
       .sort({ createdAt: -1 })
       .lean();
 
-    // Fetch appointments (Events) from the Event model
     const appointmentsData = await Event.find({
       elderIds: elderlyId,
-    }).sort({ start: 1 }); // Sort by start time
+    }).sort({ start: 1 });
 
-    // Format the appointments
     const appointments = appointmentsData.map((event) => ({
-      date: event.start.toISOString().split('T')[0], // Format date as YYYY-MM-DD
+      date: event.start.toISOString().split('T')[0],
       time: event.start.toLocaleTimeString([], {
         hour: '2-digit',
         minute: '2-digit',
-      }), // Format time as HH:mm
-      type: event.title, // Use title as the appointment type
-      provider: event.instructions || 'Unknown', // Use instructions as provider if available
+      }),
+      type: event.title,
+      provider: event.instructions || 'Unknown',
       location: event.location,
-      notes: event.notes || 'No additional notes', // Default to 'No additional notes' if none are provided
+      notes: event.notes || 'No additional notes',
     }));
 
-    // Transform patient data
     const patientData = {
       name: `${elder.firstName} ${elder.lastName}`,
       age: calculateAge(elder.dateOfBirth),
       roomNumber: elder.roomNumber,
-      primaryCaregiver: 'Sarah Johnson', // Replace with actual data if available
+      primaryCaregiver: 'Sarah Johnson',
       insurance: elder.insuranceInfo?.provider || 'Unknown',
       admissionDate: elder.registrationDate.toISOString().split('T')[0],
       allergies: elder.allergies,
       bloodType: elder.bloodType,
       diagnoses: elder.chronicConditions.map((condition) => ({
         condition,
-        since: 'Unknown', // Replace with actual data if available
+        since: 'Unknown',
       })),
       emergencyContacts: elder.emergencyContacts.map((contact) => ({
         name: contact.name,
@@ -426,20 +420,17 @@ export const getPatientData = async (req, res) => {
         email: contact.email,
       })),
       careTeam:
-        elder?.assignedCaregivers?.length > 0
-          ? elder.assignedCaregivers.map((caregiver) => ({
-              id: caregiver._id,
-              name: caregiver.name,
-              phone: caregiver.phone,
-              available: caregiver.availability,
-              role: caregiver.specialization,
-              email: caregiver.email,
-              status: caregiver.status,
-            }))
-          : [],
+        elder.assignedCaregivers?.map((caregiver) => ({
+          id: caregiver._id,
+          name: caregiver.name,
+          phone: caregiver.phone,
+          available: caregiver.availability,
+          role: caregiver.specialization,
+          email: caregiver.email,
+          status: caregiver.status,
+        })) || [],
     };
 
-    // Transform health metrics
     const healthMetrics = {
       bloodPressure: healthLogs.map((log) => ({
         date: log.logDateTime.toISOString().split('T')[0],
@@ -452,8 +443,8 @@ export const getPatientData = async (req, res) => {
       weight: healthLogs.map((log) => ({
         date: log.logDateTime.toISOString().split('T')[0],
         value: log.weight,
-        unit: 'lbs', // Assuming weight is in pounds
-        bmi: calculateBMI(log.weight, elder.height), // Replace with actual height if available
+        unit: 'lbs',
+        bmi: calculateBMI(log.weight, elder.height),
       })),
       glucose: healthLogs
         .filter((log) => log.glucose)
@@ -461,23 +452,27 @@ export const getPatientData = async (req, res) => {
           date: log.logDateTime.toISOString().split('T')[0],
           value: log.glucose,
           time: log.logDateTime.toTimeString().split(' ')[0],
-          type: 'Fasting', // Replace with actual type if available
+          type: 'Fasting',
         })),
     };
 
-    // Transform medications
     const medicationSchedule = medications.map((med) => ({
       name: med.name,
       dosage: med.dosage,
       frequency: med.frequency,
       timeSlots: med.timeSlots,
-      status: 'active', // Replace with actual status if available
+      status: 'active',
       refillDate: med.refillDate?.toISOString().split('T')[0],
       sideEffects: med.sideEffects,
-      adherence: 95, // Replace with actual adherence if available
+      adherence: 95,
     }));
 
-    // Return aggregated data
+    const medicationData = healthLogs.map((log) => ({
+      date: log.logDateTime.toISOString().split('T')[0],
+      count: log.medications.length,
+      healthStatus: log.healthStatus,
+    }));
+
     res.status(200).json({
       success: true,
       data: {
@@ -485,6 +480,7 @@ export const getPatientData = async (req, res) => {
         healthMetrics,
         medications: medicationSchedule,
         appointments,
+        medicationData,
       },
     });
   } catch (error) {

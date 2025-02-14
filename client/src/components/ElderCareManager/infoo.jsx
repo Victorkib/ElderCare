@@ -182,13 +182,7 @@ const HealthcareDashboard = () => {
   // Upcoming appointments and tasks
   const [appointments, setAppointments] = useState([]);
 
-  const medicationData = [
-    { date: '2024-03-20', adherence: 100, count: 3 },
-    { date: '2024-03-21', adherence: 85, count: 4 },
-    { date: '2024-03-22', adherence: 90, count: 3 },
-    { date: '2024-03-23', adherence: 95, count: 4 },
-    { date: '2024-03-24', adherence: 80, count: 3 },
-  ];
+  const [medicationData, setMedicationData] = useState([]);
   const fetchUserGeneralData = async () => {
     setLoading(true);
     try {
@@ -196,12 +190,18 @@ const HealthcareDashboard = () => {
         `/elderHealthLog/getPatientData/${elderId}`
       );
       if (response.status) {
-        const { patientData, healthMetrics, medications, appointments } =
-          response.data.data;
+        const {
+          patientData,
+          healthMetrics,
+          medications,
+          appointments,
+          medicationData,
+        } = response.data.data;
         setPatientData(patientData);
         setCareTeam(patientData.careTeam);
         setHealthMetrics(healthMetrics);
         setMedications(medications);
+        setMedicationData(medicationData);
         appointments.length > 0 && setAppointments(appointments);
       }
     } catch (error) {
@@ -1126,22 +1126,26 @@ const HealthcareDashboard = () => {
                       <div
                         className={cn(
                           'px-3 py-1 rounded-full text-sm font-medium',
-                          day.adherence >= 90
+                          day.healthStatus == 'Healthy'
                             ? 'bg-green-100 text-green-800'
-                            : day.adherence >= 70
+                            : day.healthStatus == 'At Risk'
                             ? 'bg-yellow-100 text-yellow-800'
                             : 'bg-red-100 text-red-800'
                         )}
                       >
-                        {day.adherence}% adherence
+                        {day.healthStatus}
                       </div>
-                      <button
-                        onClick={() => handleAddNote(day.date)}
+                      {/* <button
+                        onClick={() =>
+                          handleAddNote(
+                            new Date(day?.date).toISOString().split('T')[0]
+                          )
+                        }
                         className="p-2 hover:bg-white rounded-full transition-colors"
                         title="Add note"
                       >
                         <PlusCircle className="w-5 h-5 text-blue-600" />
-                      </button>
+                      </button> */}
                     </div>
                   </div>
                 ))}
@@ -1152,17 +1156,28 @@ const HealthcareDashboard = () => {
       </div>
 
       {showNoteModal && (
-        <div className="modal-overlay">
-          <div className="modal">
-            <h3>Add Note for {selectedDate}</h3>
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
+          <div className="bg-white p-6 rounded-lg shadow-lg w-96">
+            <h3 className="text-lg font-semibold mb-4">
+              Add Note for {selectedDate}
+            </h3>
             <textarea
+              className="w-full h-32 border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
               value={noteText}
               onChange={(e) => setNoteText(e.target.value)}
               placeholder="Enter your note here..."
             />
-            <div className="modal-actions">
-              <button onClick={() => setShowNoteModal(false)}>Cancel</button>
-              <button onClick={saveNote} className="save-button">
+            <div className="flex justify-end mt-4 space-x-3">
+              <button
+                onClick={() => setShowNoteModal(false)}
+                className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-100"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={saveNote}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              >
                 Save Note
               </button>
             </div>
