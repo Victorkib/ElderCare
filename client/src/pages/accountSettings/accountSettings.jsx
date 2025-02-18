@@ -1,6 +1,4 @@
-/* eslint-disable react/prop-types */
-// AccountSettings.jsx
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Settings,
   User,
@@ -10,10 +8,19 @@ import {
   Phone,
   Mail,
   Clock,
-  //   Heart,
   LogOut,
+  Briefcase,
+  Globe,
 } from 'lucide-react';
 import './AccountSettings.scss';
+import apiRequest from '../../utils/api';
+import { toast, ToastContainer } from 'react-toastify';
+import { useNavigate } from 'react-router-dom';
+import Cookies from 'js-cookie';
+import { TailSpin } from 'react-loader-spinner';
+import ConfirmationDialog from './ConfirmationDialog';
+import { Star } from '@mui/icons-material';
+import { FaTools } from 'react-icons/fa';
 
 const AccountSettings = () => {
   const [activeTab, setActiveTab] = useState('profile');
@@ -21,7 +28,121 @@ const AccountSettings = () => {
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [emergencyAlertsEnabled, setEmergencyAlertsEnabled] = useState(true);
   const [timezone, setTimezone] = useState('UTC');
+  const navigate = useNavigate();
+  const [currentPass, setCurrentPass] = useState('');
+  const [newPass, setNewPass] = useState('');
+  const [confirmPass, setConfirmPass] = useState('');
+  const [loading, setLoading] = useState(false);
 
+  // Confirmation dialog states
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [showDeactivateConfirm, setShowDeactivateConfirm] = useState(false);
+  const [showPasswordConfirm, setShowPasswordConfirm] = useState(false);
+
+  // Add these state variables at the top of the component with other useState declarations
+  const [userDetails, setUserDetails] = useState({
+    firstName: '',
+    lastName: '',
+    phoneNumber: '',
+    profession: '',
+  });
+  const [showUpdateConfirm, setShowUpdateConfirm] = useState(false);
+  const [isFormDirty, setIsFormDirty] = useState(false);
+
+  // Add these functions before the return statement
+  const fetchUserDetails = async () => {
+    setLoading(true);
+    try {
+      const response = await apiRequest.get('/getUserProfile');
+      const { firstName, lastName, phoneNumber, profession, timezone } =
+        response.data;
+      setUserDetails({ firstName, lastName, phoneNumber, profession });
+      setTimezone(timezone ? timezone : 'UTC');
+    } catch (error) {
+      console.error('Error fetching user details:', error);
+      toast.error(
+        error?.response?.data?.message || 'Failed to load user details'
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setUserDetails((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+    setIsFormDirty(true);
+  };
+
+  const validateForm = () => {
+    const phoneRegex = /^\+?[\d\s-]{10,}$/;
+
+    if (!userDetails?.firstName?.trim()) {
+      toast.error('First name is required');
+      return false;
+    }
+
+    if (!userDetails?.lastName?.trim()) {
+      toast.error('Last name is required');
+      return false;
+    }
+
+    if (!userDetails?.profession?.trim()) {
+      toast.error('Please enter a valid profession');
+      return false;
+    }
+
+    if (
+      userDetails?.phoneNumber &&
+      !phoneRegex?.test(userDetails?.phoneNumber)
+    ) {
+      toast.error('Please enter a valid phone number');
+      return false;
+    }
+
+    return true;
+  };
+
+  const handleUpdateProfile = (e) => {
+    e.preventDefault();
+    if (!validateForm()) return;
+    setShowUpdateConfirm(true);
+  };
+
+  const confirmUpdateProfile = async () => {
+    setLoading(true);
+    try {
+      const response = await apiRequest.patch(
+        '/updateUserProfile',
+        userDetails
+      );
+      if (response.status) {
+        toast.success('Profile updated successfully');
+        setIsFormDirty(false);
+      }
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      toast.error(error?.response?.data?.message || 'Failed to update profile');
+    } finally {
+      setLoading(false);
+      setShowUpdateConfirm(false);
+    }
+  };
+
+  const handleTimezoneChange = (e) => {
+    setTimezone(e.target.value);
+    setIsFormDirty(true);
+  };
+
+  // Add useEffect for initial data fetch
+  useEffect(() => {
+    fetchUserDetails();
+  }, []);
+
+  // eslint-disable-next-line react/prop-types
   const TabButton = ({ value, icon: Icon, label }) => (
     <button
       className={`tab-button ${activeTab === value ? 'active' : ''}`}
@@ -32,6 +153,7 @@ const AccountSettings = () => {
     </button>
   );
 
+  // eslint-disable-next-line react/prop-types
   const Card = ({ title, description, children, variant }) => (
     <div className={`card ${variant || ''}`}>
       <div className="card-header">
@@ -42,6 +164,7 @@ const AccountSettings = () => {
     </div>
   );
 
+  // eslint-disable-next-line react/prop-types
   const Toggle = ({ checked, onChange }) => (
     <label className="toggle">
       <input
@@ -52,6 +175,77 @@ const AccountSettings = () => {
       <span className="toggle-slider" />
     </label>
   );
+
+  const handleLogout = async () => {
+    setLoading(true);
+    try {
+      localStorage.removeItem('authToken');
+      Cookies.remove('authToken');
+      navigate('/login');
+      toast.success('Logged out successfully');
+    } catch (error) {
+      console.log('Error occured, ', error);
+      toast.error(error?.response?.data?.message || 'Error logging out.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleUpdatePassword = async (e) => {
+    e.preventDefault();
+
+    if (newPass !== confirmPass) {
+      toast.error('New passwords do not match!');
+      return;
+    }
+
+    setShowPasswordConfirm(true);
+  };
+
+  const confirmPasswordUpdate = async () => {
+    setLoading(true);
+    try {
+      const response = await apiRequest.patch('/updatePassword', {
+        currentPassword: currentPass,
+        newPassword: newPass,
+      });
+
+      toast.success(response.data.message || 'Password updated successfully!');
+      setCurrentPass('');
+      setNewPass('');
+      setConfirmPass('');
+      handleLogout();
+    } catch (error) {
+      console.error('Error updating password:', error);
+      toast.error(
+        error?.response?.data?.message || 'Failed to update password'
+      );
+    } finally {
+      setLoading(false);
+      setShowPasswordConfirm(false);
+    }
+  };
+
+  const handleDeactivate = async () => {
+    setShowDeactivateConfirm(true);
+  };
+
+  const confirmDeactivate = async () => {
+    setLoading(true);
+    try {
+      await apiRequest.delete('/deactivate');
+      toast.success('Account successfully deactivated.');
+      window.location.href = '/logout';
+    } catch (error) {
+      console.error('Error deactivating account:', error);
+      toast.error(
+        error?.response?.data?.message || 'Failed to deactivate account'
+      );
+    } finally {
+      setLoading(false);
+      setShowDeactivateConfirm(false);
+    }
+  };
 
   return (
     <div className="account-settings">
@@ -74,54 +268,109 @@ const AccountSettings = () => {
         <div className="tab-content">
           {activeTab === 'profile' && (
             <div className="tab-panel">
-              <Card
-                title="Personal Information"
-                description="Update your personal details"
-              >
-                <div className="form-grid">
+              <form onSubmit={handleUpdateProfile}>
+                <div className="p-2">
+                  <div className="form-grid">
+                    <div className="form-group">
+                      <label>Update First Name</label>
+                      <input
+                        type="text"
+                        name="firstName"
+                        value={userDetails.firstName}
+                        onChange={handleInputChange}
+                        placeholder={
+                          userDetails.firstName
+                            ? userDetails.firstName
+                            : 'Enter first name'
+                        }
+                        required
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label>Update Last Name</label>
+                      <input
+                        type="text"
+                        name="lastName"
+                        value={userDetails.lastName}
+                        onChange={handleInputChange}
+                        placeholder={
+                          userDetails.lastName
+                            ? userDetails.lastName
+                            : 'Enter last name'
+                        }
+                        required
+                      />
+                    </div>
+                  </div>
+
                   <div className="form-group">
-                    <label>First Name</label>
-                    <input type="text" placeholder="Enter first name" />
+                    <label>Role</label>
+                    <input type="text" value={userRole} disabled />
                   </div>
-                  <div className="form-group">
-                    <label>Last Name</label>
-                    <input type="text" placeholder="Enter last name" />
+
+                  <div className="form-grid">
+                    <div className="input-icon-group">
+                      <Phone className="input-icon" />
+                      <input
+                        type="tel"
+                        name="phoneNumber"
+                        value={userDetails.phoneNumber}
+                        onChange={handleInputChange}
+                        placeholder={
+                          userDetails.phoneNumber
+                            ? userDetails.phoneNumber
+                            : 'Phone number'
+                        }
+                      />
+                    </div>
+                    <div className="input-icon-group">
+                      <FaTools className="input-icon" />
+                      <input
+                        type="text"
+                        name="profession"
+                        value={userDetails.profession}
+                        onChange={handleInputChange}
+                        placeholder={
+                          userDetails.profession
+                            ? userDetails.profession
+                            : 'profession '
+                        }
+                        required
+                      />
+                    </div>
                   </div>
                 </div>
 
-                <div className="form-group">
-                  <label>Role</label>
-                  <input type="text" value={userRole} disabled />
-                </div>
-
-                <div className="form-grid">
-                  <div className="input-icon-group">
-                    <Phone className="input-icon" />
-                    <input type="tel" placeholder="Phone number" />
-                  </div>
-                  <div className="input-icon-group">
-                    <Mail className="input-icon" />
-                    <input type="email" placeholder="Email address" />
+                <div className="p-4">
+                  <div className="select-group">
+                    <Clock className="select-icon" />
+                    <select value={timezone} onChange={handleTimezoneChange}>
+                      <option value="UTC">UTC</option>
+                      <option value="EST">Eastern Time</option>
+                      <option value="PST">Pacific Time</option>
+                    </select>
                   </div>
                 </div>
-              </Card>
 
-              <Card
-                title="Time Zone Settings"
-                description="Set your preferred time zone"
-              >
-                <div className="select-group">
-                  <Clock className="select-icon" />
-                  <select
-                    value={timezone}
-                    onChange={(e) => setTimezone(e.target.value)}
+                <div className="mt-6 flex justify-end">
+                  <button
+                    type="submit"
+                    className="bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-blue-700 transition duration-300 disabled:opacity-50"
+                    disabled={!isFormDirty}
                   >
-                    <option value="UTC">UTC</option>
-                    <option value="EST">Eastern Time</option>
-                    <option value="PST">Pacific Time</option>
-                  </select>
+                    Save Changes
+                  </button>
                 </div>
-              </Card>
+              </form>
+
+              <ConfirmationDialog
+                isOpen={showUpdateConfirm}
+                onClose={() => setShowUpdateConfirm(false)}
+                onConfirm={confirmUpdateProfile}
+                title="Confirm Profile Update"
+                description="Are you sure you want to update your profile information?"
+                confirmText="Update Profile"
+              />
             </div>
           )}
           {activeTab === 'notifications' && (
@@ -252,21 +501,47 @@ const AccountSettings = () => {
           )}
           {activeTab === 'security' && (
             <div className="tab-panel">
-              <Card title="Password" description="Change your password">
-                <div className="form-stack">
-                  <input type="password" placeholder="Current password" />
-                  <input type="password" placeholder="New password" />
-                  <input type="password" placeholder="Confirm new password" />
-                  <button className="button primary">Update Password</button>
-                </div>
-              </Card>
+              <div>
+                <form
+                  className="flex flex-col space-y-4 bg-white p-6 rounded-lg shadow-md"
+                  onSubmit={handleUpdatePassword}
+                >
+                  <input
+                    type="password"
+                    placeholder="Current password"
+                    value={currentPass}
+                    onChange={(e) => setCurrentPass(e.target.value)}
+                    className="border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                  <input
+                    type="password"
+                    placeholder="New password"
+                    value={newPass}
+                    onChange={(e) => setNewPass(e.target.value)}
+                    className="border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                  <input
+                    type="password"
+                    placeholder="Confirm new password"
+                    value={confirmPass}
+                    onChange={(e) => setConfirmPass(e.target.value)}
+                    className="border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                  <button
+                    className="bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-blue-700 transition duration-300"
+                    type="submit"
+                  >
+                    Update Password
+                  </button>
+                </form>
+              </div>
 
               <Card
                 title="Danger Zone"
                 description="Irreversible account actions"
                 variant="danger"
               >
-                <button className="button danger">
+                <button className="button danger" onClick={handleDeactivate}>
                   <LogOut className="button-icon" />
                   Deactivate Account
                 </button>
@@ -275,6 +550,46 @@ const AccountSettings = () => {
           )}
         </div>
       </div>
+      <ConfirmationDialog
+        isOpen={showLogoutConfirm}
+        onClose={() => setShowLogoutConfirm(false)}
+        onConfirm={handleLogout}
+        title="Confirm Logout"
+        description="Are you sure you want to log out of your account?"
+        confirmText="Logout"
+      />
+
+      <ConfirmationDialog
+        isOpen={showPasswordConfirm}
+        onClose={() => setShowPasswordConfirm(false)}
+        onConfirm={confirmPasswordUpdate}
+        title="Confirm Password Update"
+        description="Are you sure you want to update your password? You will be logged out after the change."
+        confirmText="Update Password"
+      />
+
+      <ConfirmationDialog
+        isOpen={showDeactivateConfirm}
+        onClose={() => setShowDeactivateConfirm(false)}
+        onConfirm={confirmDeactivate}
+        title="Deactivate Account"
+        description="Are you sure you want to deactivate your account? This action cannot be undone."
+        confirmText="Deactivate"
+        variant="destructive"
+      />
+
+      <ToastContainer />
+      {loading && (
+        <div className="loader-overlay">
+          <TailSpin
+            height="100"
+            width="100"
+            color="#4fa94d"
+            ariaLabel="loading"
+            visible={true}
+          />
+        </div>
+      )}
     </div>
   );
 };

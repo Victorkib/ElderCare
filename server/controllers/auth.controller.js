@@ -230,3 +230,127 @@ export const deleteUser = async (req, res) => {
     res.status(500).json({ message: error.message || 'Error deleting user' });
   }
 };
+
+//update user password
+export const updatePassword = async (req, res) => {
+  try {
+    const userId = req.decodedToken.id; // Get user ID from token
+    const { currentPassword, newPassword } = req.body;
+
+    // Find user by ID
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found.' });
+    }
+
+    // Verify current password
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ error: 'Current password is incorrect.' });
+    }
+
+    // Hash the new password
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    user.password = hashedPassword;
+
+    // Save the updated user
+    await user.save();
+
+    res.status(200).json({ message: 'Password updated successfully!' });
+  } catch (error) {
+    console.error('Error updating password:', error);
+    res.status(500).json({ error: 'Internal server error.' });
+  }
+};
+
+//deactivate account
+export const deactivateAccount = async (req, res) => {
+  try {
+    const userId = req.decodedToken.id; // Get user ID from token
+
+    // Delete user from the database
+    const deletedUser = await User.findByIdAndDelete(userId);
+
+    if (!deletedUser) {
+      return res.status(404).json({ error: 'User not found.' });
+    }
+
+    res.status(200).json({ message: 'Account successfully deactivated.' });
+  } catch (error) {
+    console.error('Error deactivating account:', error);
+    res.status(500).json({ error: 'Internal server error.' });
+  }
+};
+
+//get logged in user details
+export const getUserProfile = async (req, res) => {
+  try {
+    // Extract user ID from the JWT token (from the middleware)
+    const userId = req.decodedToken.id;
+
+    // Find user by ID, excluding password
+    const user = await User.findById(userId).select(
+      'firstName lastName profession phoneNo email'
+    );
+
+    if (!user) {
+      return res
+        .status(404)
+        .json({ success: false, message: 'User not found' });
+    }
+
+    // Return user profile data
+    res.status(200).json({
+      success: true,
+      data: {
+        firstName: user.firstName,
+        lastName: user.lastName,
+        profession: user.profession,
+        phoneNumber: user.phoneNo,
+        email: user.email,
+      },
+    });
+  } catch (error) {
+    console.error('Error fetching user profile:', error);
+    res.status(500).json({ success: false, message: 'Internal server error' });
+  }
+};
+
+//update the user profile data
+export const updateUserProfile = async (req, res) => {
+  try {
+    // Extract user ID from JWT token
+    const userId = req.decodedToken.id;
+
+    // Extract fields from request body
+    const { firstName, lastName, profession, phoneNumber } = req.body;
+
+    // Find and update the user
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      { firstName, lastName, profession, phoneNo: phoneNumber }, // Ensure correct field mapping
+      { new: true, runValidators: true } // Return updated document & apply validation
+    );
+
+    if (!updatedUser) {
+      return res
+        .status(404)
+        .json({ success: false, message: 'User not found' });
+    }
+
+    // Respond with updated data
+    res.status(200).json({
+      success: true,
+      message: 'Profile updated successfully',
+      data: {
+        firstName: updatedUser.firstName,
+        lastName: updatedUser.lastName,
+        profession: updatedUser.profession,
+        phoneNumber: updatedUser.phoneNo,
+      },
+    });
+  } catch (error) {
+    console.error('Error updating user profile:', error);
+    res.status(500).json({ success: false, message: 'Internal server error' });
+  }
+};

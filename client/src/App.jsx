@@ -27,6 +27,10 @@ import NotFound from './components/NotFound/NotFound';
 import ElderlyCareManagementSystem from './components/CareGivers/ElderlyCareManagementSystem';
 import ClaudeCaregiverManagement from './components/CareGivers/CareGiverMngt/ClaudeCaregiverManagement';
 import Research from './components/CareGivers/CareGiveSecond/research';
+import TermsAndConditions from './pages/TermsAndConditions/TermsAndConditions';
+import BillingPage from './pages/Billing/BillingPage';
+import DeepBillingPage from './pages/Billing/DeepBillingPage';
+import CaregiverProfile from './components/ElderCareManager/information';
 
 function App() {
   return (
@@ -40,11 +44,18 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/aboutPage" element={<AboutPage />} />
+            <Route path="/terms" element={<TermsAndConditions />} />
 
             {/* Protected Routes */}
             <Route element={<RequireAuth />}>
               <Route path="/land" element={<LoggedInLandingPage />} />
+              <Route path="/billing" element={<BillingPage />} />
+              <Route path="/deepBilling" element={<DeepBillingPage />} />
               <Route path="/accountSettings" element={<AccountSettings />} />
+              <Route
+                path="/profile/:caregiverId"
+                element={<CaregiverProfile />}
+              />
               <Route path="/allHealthLogs" element={<NewHealthLogs />} />
               <Route path="/elderReg" element={<ElderlyRegistration />} />
               <Route path="/addHealthLog" element={<AddHealthLog />} />

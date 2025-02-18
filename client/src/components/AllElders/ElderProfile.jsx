@@ -19,6 +19,7 @@ import {
   ListItemAvatar,
   Badge,
   LinearProgress,
+  Dialog,
 } from '@mui/material';
 import {
   Edit,
@@ -48,6 +49,9 @@ import DocumentSecureLink from './DocumentSecureLink';
 import { toast, ToastContainer } from 'react-toastify';
 import apiRequest from '../../utils/api';
 import { TailSpin } from 'react-loader-spinner';
+import PersonAddIcon from '@mui/icons-material/PersonAdd'; // New import
+import AssignCaregiverModal from '../custom/AssignCaregiverModal';
+import EditProfilePhoto from '../custom/EditProfilePhoto';
 // import { Upload } from '@mui/icons-material';
 
 const ElderProfile = () => {
@@ -58,27 +62,43 @@ const ElderProfile = () => {
   const [tabValue, setTabValue] = useState(0);
   const [isEditing, setIsEditing] = useState(false);
   const navigate = useNavigate();
+  const [showCaregiverModal, setShowCaregiverModal] = useState(false);
+  const [isEditingImage, setIsEditingImage] = useState(false);
+  const [currentPhoto, setCurrentPhoto] = useState('');
 
-  useEffect(() => {
-    const fetchElderData = async () => {
-      try {
-        const response = await apiRequest.get(
-          `/elders/getSingleElder/${elderId}`
-        );
-        if (response.status) {
-          setElderData(response.data.elder);
-          setUpcomongEvents(response.data.upcomingEvents);
-          console.log('elderData: ', response.data);
-        }
-      } catch (error) {
-        toast.error(
-          error.response?.data?.message || 'Failed to fetch elder data'
-        );
+  const fetchElderData = async () => {
+    try {
+      const response = await apiRequest.get(
+        `/elders/getSingleElder/${elderId}`
+      );
+      if (response.status) {
+        setElderData(response.data.elder);
+        setUpcomongEvents(response.data.upcomingEvents);
       }
-    };
-
+    } catch (error) {
+      toast.error(
+        error.response?.data?.message || 'Failed to fetch elder data'
+      );
+    }
+  };
+  useEffect(() => {
     fetchElderData();
   }, []);
+
+  const handleAssignSuccess = async () => {
+    await fetchElderData();
+    toast.success('Updated!');
+  };
+
+  const handleEditImage = (photo) => {
+    setIsEditingImage(true);
+    setCurrentPhoto(photo);
+  };
+
+  const handlePhotoUpdated = async () => {
+    await fetchElderData(); // Refresh the data
+    setIsEditingImage(false); // Close the edit mode
+  };
 
   // Sample data - replace with actual API calls
   const elder = {
@@ -146,34 +166,55 @@ const ElderProfile = () => {
       <Paper
         elevation={3}
         sx={{
-          p: 4,
+          p: { xs: 2, sm: 3, md: 4 },
           borderRadius: 4,
           bgcolor: theme.palette.background.paper,
-          mt: 10,
+          mt: { xs: 2, sm: 6, md: 10 },
         }}
       >
         {/* Profile Header */}
-        <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: { xs: 'column', sm: 'row' },
+            alignItems: 'center',
+            mb: 2,
+          }}
+        >
           <Badge
             overlap="circular"
             anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
             badgeContent={
               <IconButton
-                onClick={() => console.log('Edit photo')}
+                onClick={() => {
+                  if (elder.photo) {
+                    handleEditImage(elder.photo);
+                  } else {
+                    handleEditImage(''); // Fallback in case there's no image
+                  }
+                }}
                 size="small"
               >
                 <Edit fontSize="small" />
               </IconButton>
             }
           >
-            <Avatar src={elder.photo} sx={{ width: 120, height: 120, mr: 4 }}>
+            <Avatar
+              src={elder.photo}
+              sx={{
+                width: { xs: 80, sm: 100, md: 120 },
+                height: { xs: 80, sm: 100, md: 120 },
+                mb: { xs: 2, sm: 0 },
+                mr: { sm: 4 },
+              }}
+            >
               {elder.firstName[0]}
               {elder.lastName[0]}
             </Avatar>
           </Badge>
 
-          <Box>
-            <Typography variant="h3" component="h1">
+          <Box sx={{ textAlign: { xs: 'center', sm: 'left' } }}>
+            <Typography variant="h4" component="h1" sx={{ mb: 1 }}>
               {elder.firstName} {elder.lastName}
               <IconButton
                 onClick={() => setIsEditing(!isEditing)}
@@ -183,8 +224,15 @@ const ElderProfile = () => {
               </IconButton>
             </Typography>
 
-            <Box sx={{ display: 'flex', gap: 2, mt: 1 }}>
-              <Chip label={`Age: ${age}`} variant="outlined" />
+            <Box
+              sx={{
+                display: 'flex',
+                flexWrap: 'wrap',
+                gap: 1,
+                justifyContent: { xs: 'center', sm: 'flex-start' },
+              }}
+            >
+              <Chip label={`Age: ${age}`} variant="outlined" size="small" />
               <Chip
                 label={elder.status}
                 color={
@@ -194,67 +242,108 @@ const ElderProfile = () => {
                     ? 'warning'
                     : 'default'
                 }
+                size="small"
               />
               <Chip
                 icon={getMobilityIcon()}
                 label={elder.mobilityStatus.replace(/-/g, ' ')}
                 variant="outlined"
+                size="small"
               />
             </Box>
           </Box>
         </Box>
-
         {/* Quick Stats Panel */}
-        <Grid container spacing={3} sx={{ mb: 4 }}>
-          <Grid item xs={12} md={3}>
-            <Paper sx={{ p: 2, textAlign: 'center' }}>
-              <Typography variant="h6">Room Number</Typography>
-              <Typography variant="h4" color="primary">
-                {elder.roomNumber}
-              </Typography>
-            </Paper>
-          </Grid>
-          <Grid item xs={12} md={3}>
-            <Paper sx={{ p: 2, textAlign: 'center' }}>
-              <Typography variant="h6">Daily Adherence</Typography>
-              <LinearProgress
-                variant="determinate"
-                value={85}
-                sx={{ height: 10, borderRadius: 5, my: 1 }}
-              />
-              <Typography variant="body2">85% Completed</Typography>
-            </Paper>
-          </Grid>
-          <Grid item xs={12} md={3}>
-            <Paper sx={{ p: 2, textAlign: 'center' }}>
-              <Typography variant="h6">Upcoming</Typography>
-              <Typography variant="h4" color="secondary">
-                {elder?.upcomingEvents?.length}
-              </Typography>
-              <Typography variant="body2">Events</Typography>
-            </Paper>
-          </Grid>
-          <Grid item xs={12} md={3}>
-            <Paper sx={{ p: 2, textAlign: 'center' }}>
-              <Typography variant="h6">Care Team</Typography>
-              <Typography variant="h4" color="info">
-                {elder.assignedCaregivers.length}
-              </Typography>
-              <Typography variant="body2">Members</Typography>
-            </Paper>
-          </Grid>
+        <Grid container spacing={2} sx={{ mb: 4 }}>
+          {[
+            { title: 'Room Number', value: elder.roomNumber, color: 'primary' },
+            {
+              title: 'Daily Adherence',
+              value: '85%',
+              color: 'secondary',
+              progress: true,
+            },
+            {
+              title: 'Upcoming Events',
+              value: elder?.upcomingEvents?.length,
+              color: 'info',
+            },
+            {
+              title: 'Care Team',
+              value: elderData.assignedCaregivers.length,
+              color: 'success',
+              action: (
+                <Button
+                  variant="outlined"
+                  startIcon={<PersonAddIcon />}
+                  onClick={() => setShowCaregiverModal(true)}
+                  sx={{ mt: 1 }}
+                >
+                  Add Caregiver
+                </Button>
+              ),
+            },
+          ].map((stat, index) => (
+            <Grid item xs={6} sm={3} key={index}>
+              <Paper
+                sx={{
+                  p: 2,
+                  textAlign: 'center',
+                  height: '100%',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'center',
+                }}
+              >
+                <Typography variant="subtitle2" gutterBottom>
+                  {stat.title}
+                </Typography>
+                {stat.progress ? (
+                  <>
+                    <LinearProgress
+                      variant="determinate"
+                      value={85}
+                      sx={{ height: 10, borderRadius: 5, my: 1 }}
+                    />
+                    <Typography variant="h6" color={stat.color}>
+                      {stat.value}
+                    </Typography>
+                  </>
+                ) : (
+                  <>
+                    <Typography variant="h5" color={stat.color}>
+                      {stat.value}
+                    </Typography>
+                    {stat.action}
+                  </>
+                )}
+              </Paper>
+            </Grid>
+          ))}
         </Grid>
-
         {/* Tabbed Sections */}
-        <Tabs value={tabValue} onChange={handleTabChange} variant="scrollable">
-          <Tab label="Overview" icon={<AccessTime />} />
-          <Tab label="Medical" icon={<LocalHospital />} />
-          <Tab label="Care Preferences" icon={<Favorite />} />
-          <Tab label="Contacts" icon={<ContactEmergency />} />
-          <Tab label="Documents" icon={<Description />} />
-          <Tab label="Schedule" icon={<Schedule />} />
+        <Tabs
+          value={tabValue}
+          onChange={handleTabChange}
+          variant="scrollable"
+          scrollButtons="auto"
+          sx={{
+            borderBottom: 1,
+            borderColor: 'divider',
+            '& .MuiTab-root': { minWidth: { xs: 'auto', sm: 120 } },
+          }}
+        >
+          <Tab label="Overview" icon={<AccessTime />} iconPosition="start" />
+          <Tab label="Medical" icon={<LocalHospital />} iconPosition="start" />
+          <Tab label="Care" icon={<Favorite />} iconPosition="start" />
+          <Tab
+            label="Contacts"
+            icon={<ContactEmergency />}
+            iconPosition="start"
+          />
+          <Tab label="Documents" icon={<Description />} iconPosition="start" />
+          <Tab label="Schedule" icon={<Schedule />} iconPosition="start" />
         </Tabs>
-
         <Box sx={{ pt: 3 }}>
           {tabValue === 0 && (
             <Grid container spacing={3}>
@@ -312,7 +401,7 @@ const ElderProfile = () => {
                       },
                     })
                   }
-                  sx={{ mt: 2 }}
+                  sx={{ mt: 2, width: { xs: '100%', sm: 'auto' } }}
                 >
                   View Full Schedule
                 </Button>
@@ -327,7 +416,7 @@ const ElderProfile = () => {
               </Typography>
               <Grid container spacing={3}>
                 {/* Allergies Section */}
-                <Grid item xs={12} md={6}>
+                <Grid item xs={12} sm={6}>
                   <Typography variant="h6" gutterBottom>
                     Allergies
                   </Typography>
@@ -338,21 +427,23 @@ const ElderProfile = () => {
                         label={allergy}
                         color="error"
                         variant="outlined"
+                        size="small"
+                        sx={{ mb: 1 }}
                       />
                     ))}
                   </Box>
                 </Grid>
 
                 {/* Medications Section */}
-                <Grid item xs={12} md={6}>
+                <Grid item xs={12} sm={6}>
                   <Typography variant="h6" gutterBottom>
                     Current Medications
                   </Typography>
                   <List dense>
                     {elder.medications?.map((med, index) => (
-                      <ListItem key={index}>
+                      <ListItem key={index} disablePadding>
                         <ListItemAvatar>
-                          <Avatar>
+                          <Avatar sx={{ bgcolor: 'primary.main' }}>
                             <Medication />
                           </Avatar>
                         </ListItemAvatar>
@@ -363,7 +454,7 @@ const ElderProfile = () => {
                 </Grid>
 
                 {/* Chronic Conditions */}
-                <Grid item xs={12} md={6}>
+                <Grid item xs={12} sm={6}>
                   <Typography variant="h6" gutterBottom>
                     Chronic Conditions
                   </Typography>
@@ -374,13 +465,15 @@ const ElderProfile = () => {
                         label={condition}
                         color="warning"
                         variant="outlined"
+                        size="small"
+                        sx={{ mb: 1 }}
                       />
                     ))}
                   </Box>
                 </Grid>
 
                 {/* Cognitive Status */}
-                <Grid item xs={12} md={6}>
+                <Grid item xs={12} sm={6}>
                   <Typography variant="h6" gutterBottom>
                     Cognitive Status
                   </Typography>
@@ -398,55 +491,35 @@ const ElderProfile = () => {
                     Medical History
                   </Typography>
                   <Grid container spacing={2}>
-                    <Grid item xs={12} md={4}>
-                      <Paper sx={{ p: 2 }}>
-                        <Typography variant="subtitle1">
-                          Previous Hospitalizations
-                        </Typography>
-                        <List dense>
-                          {elder.previousHospitalizations?.map((hosp, idx) => (
-                            <ListItem key={idx}>
-                              <ListItemText primary={hosp} />
-                            </ListItem>
-                          ))}
-                        </List>
-                      </Paper>
-                    </Grid>
-                    <Grid item xs={12} md={4}>
-                      <Paper sx={{ p: 2 }}>
-                        <Typography variant="subtitle1">
-                          Surgical History
-                        </Typography>
-                        <List dense>
-                          {elder.surgicalHistory?.map((surgery, idx) => (
-                            <ListItem key={idx}>
-                              <ListItemText primary={surgery} />
-                            </ListItem>
-                          ))}
-                        </List>
-                      </Paper>
-                    </Grid>
-                    <Grid item xs={12} md={4}>
-                      <Paper sx={{ p: 2 }}>
-                        <Typography variant="subtitle1">
-                          Family History
-                        </Typography>
-                        <List dense>
-                          {elder.familyHistory?.map((history, idx) => (
-                            <ListItem key={idx}>
-                              <ListItemText primary={history} />
-                            </ListItem>
-                          ))}
-                        </List>
-                      </Paper>
-                    </Grid>
+                    {[
+                      'Previous Hospitalizations',
+                      'Surgical History',
+                      'Family History',
+                    ].map((title, index) => (
+                      <Grid item xs={12} sm={4} key={index}>
+                        <Paper sx={{ p: 2, height: '100%' }}>
+                          <Typography variant="subtitle1" gutterBottom>
+                            {title}
+                          </Typography>
+                          <List dense>
+                            {elder[title.toLowerCase().replace(' ', '')]?.map(
+                              (item, idx) => (
+                                <ListItem key={idx} disablePadding>
+                                  <ListItemText primary={item} />
+                                </ListItem>
+                              )
+                            )}
+                          </List>
+                        </Paper>
+                      </Grid>
+                    ))}
                   </Grid>
                 </Grid>
               </Grid>
             </Box>
           )}
 
-          {tabValue === 2 && ( // Care Preferences Tab
+          {tabValue === 2 && (
             <Grid container spacing={3}>
               <Grid item xs={12} md={6}>
                 <Typography variant="h5" gutterBottom>
@@ -465,22 +538,22 @@ const ElderProfile = () => {
                       primary="Preferred Schedule"
                       secondary={
                         <Box component="div">
-                          <div>
+                          <Typography variant="body2">
                             Wake:{' '}
                             {elder.preferredDailySchedule?.wakeTime ||
                               'Not specified'}
-                          </div>
-                          <div>
+                          </Typography>
+                          <Typography variant="body2">
                             Bed:{' '}
                             {elder.preferredDailySchedule?.bedTime ||
                               'Not specified'}
-                          </div>
-                          <div>
+                          </Typography>
+                          <Typography variant="body2">
                             Meals:{' '}
                             {elder.preferredDailySchedule?.mealTimes?.join(
                               ', '
                             ) || 'Not specified'}
-                          </div>
+                          </Typography>
                         </Box>
                       }
                     />
@@ -521,16 +594,18 @@ const ElderProfile = () => {
                   ))}
                 </List>
 
-                <Typography variant="h6" sx={{ mt: 2 }}>
+                <Typography variant="h6" sx={{ mt: 2, mb: 1 }}>
                   Activity Preferences
                 </Typography>
-                <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mt: 1 }}>
+                <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
                   {elder.preferredDailySchedule?.activityPreferences?.map(
                     (activity) => (
                       <Chip
                         key={activity}
                         label={activity}
                         variant="outlined"
+                        size="small"
+                        sx={{ mb: 1 }}
                       />
                     )
                   )}
@@ -539,7 +614,7 @@ const ElderProfile = () => {
             </Grid>
           )}
 
-          {tabValue === 3 && ( // Contacts Tab
+          {tabValue === 3 && (
             <Grid container spacing={3}>
               <Grid item xs={12} md={6}>
                 <Typography variant="h5" gutterBottom>
@@ -547,19 +622,40 @@ const ElderProfile = () => {
                 </Typography>
                 <List dense>
                   {elder.emergencyContacts?.map((contact, index) => (
-                    <ListItem key={index}>
+                    <ListItem
+                      key={index}
+                      sx={{
+                        flexDirection: { xs: 'column', sm: 'row' },
+                        alignItems: { xs: 'flex-start', sm: 'center' },
+                      }}
+                    >
                       <ListItemAvatar>
-                        <Avatar>{contact.name[0]}</Avatar>
+                        <Avatar sx={{ bgcolor: 'secondary.main' }}>
+                          {contact.name[0]}
+                        </Avatar>
                       </ListItemAvatar>
                       <ListItemText
                         primary={contact.name}
                         secondary={
                           <Box component="div">
-                            <div>{contact.relationship}</div>
-                            <div>Phone: {contact.phone}</div>
-                            {contact.email && <div>Email: {contact.email}</div>}
+                            <Typography variant="body2">
+                              {contact.relationship}
+                            </Typography>
+                            <Typography variant="body2">
+                              Phone: {contact.phone}
+                            </Typography>
+                            {contact.email && (
+                              <Typography variant="body2">
+                                Email: {contact.email}
+                              </Typography>
+                            )}
                             {contact.isLegalGuardian && (
-                              <Chip label="Legal Guardian" size="small" />
+                              <Chip
+                                label="Legal Guardian"
+                                size="small"
+                                color="primary"
+                                sx={{ mt: 1 }}
+                              />
                             )}
                           </Box>
                         }
@@ -574,30 +670,33 @@ const ElderProfile = () => {
                   Care Team
                 </Typography>
                 <List dense>
-                  {elder.assignedCaregivers?.map((member, index) => (
-                    <ListItem key={index}>
-                      <ListItemAvatar>
-                        <Avatar>{member.name[0]}</Avatar>
-                      </ListItemAvatar>
-                      <ListItemText
-                        primary={member.name}
-                        secondary={member.specialization}
-                      />
-                    </ListItem>
-                  ))}
+                  {elder?.assignedCaregivers?.length > 0 &&
+                    elder.assignedCaregivers?.map((member, index) => (
+                      <ListItem key={index}>
+                        <ListItemAvatar>
+                          <Avatar sx={{ bgcolor: 'primary.main' }}>
+                            {member?.name[0]}
+                          </Avatar>
+                        </ListItemAvatar>
+                        <ListItemText
+                          primary={member?.name}
+                          secondary={member?.specialization}
+                        />
+                      </ListItem>
+                    ))}
                 </List>
               </Grid>
             </Grid>
           )}
 
-          {tabValue === 4 && ( // Documents Tab
+          {tabValue === 4 && (
             <Grid container spacing={3}>
               <Grid item xs={12} md={6}>
                 <Typography variant="h5" gutterBottom>
                   Insurance Information
                 </Typography>
                 <Paper sx={{ p: 2 }}>
-                  <Typography variant="body1">
+                  <Typography variant="body1" gutterBottom>
                     Provider: {elder.insuranceInfo?.provider || 'Not specified'}
                   </Typography>
                   <Typography variant="body1">
@@ -618,7 +717,9 @@ const ElderProfile = () => {
                         {elder[`${key}Documents`]?.map((doc, idx) => (
                           <ListItem key={idx}>
                             <ListItemAvatar>
-                              <Avatar>{icon}</Avatar>
+                              <Avatar sx={{ bgcolor: 'info.main' }}>
+                                {icon}
+                              </Avatar>
                             </ListItemAvatar>
                             <ListItemText
                               primary={doc.split('/').pop()}
@@ -636,10 +737,14 @@ const ElderProfile = () => {
             </Grid>
           )}
 
-          {tabValue === 5 && ( // Schedule Tab
-            <Box sx={{ textAlign: 'center', p: 4 }}>
+          {tabValue === 5 && (
+            <Box sx={{ textAlign: 'center', p: { xs: 2, sm: 4 } }}>
               <ScheduleIcon
-                sx={{ fontSize: 80, color: 'text.secondary', mb: 2 }}
+                sx={{
+                  fontSize: { xs: 60, sm: 80 },
+                  color: 'text.secondary',
+                  mb: 2,
+                }}
               />
               <Typography variant="h5" gutterBottom>
                 Full Schedule Management
@@ -652,24 +757,22 @@ const ElderProfile = () => {
                 startIcon={<Schedule />}
                 onClick={() =>
                   navigate(`/scheduler`, {
-                    state: {
-                      elderId: elderData._id ? elderData._id : elderId,
-                    },
+                    state: { elderId: elderData._id ? elderData._id : elderId },
                   })
                 }
+                sx={{ width: { xs: '100%', sm: 'auto' } }}
               >
                 Open Schedule Manager
               </Button>
             </Box>
           )}
         </Box>
-
         {/* Emergency Quick Actions */}
         <Box
           sx={{
             position: 'fixed',
-            bottom: 20,
-            right: 20,
+            bottom: { xs: 16, sm: 20 },
+            right: { xs: 16, sm: 20 },
             display: 'flex',
             gap: 2,
           }}
@@ -678,11 +781,28 @@ const ElderProfile = () => {
             variant="contained"
             color="error"
             startIcon={<Notifications />}
+            size="large"
           >
             Emergency Alert
           </Button>
         </Box>
-
+        {/* New: AssignCaregiverModal */}
+        <AssignCaregiverModal
+          isOpen={showCaregiverModal}
+          onClose={() => setShowCaregiverModal(false)}
+          elderId={elderId}
+          onAssignSuccess={handleAssignSuccess}
+        />
+        <Dialog open={isEditingImage} onClose={() => setIsEditingImage(false)}>
+          <EditProfilePhoto
+            userId={elderId}
+            currentPhoto={currentPhoto}
+            onPhotoUpdated={() => {
+              handlePhotoUpdated();
+              setIsEditingImage(false); // Close after update
+            }}
+          />
+        </Dialog>
         <ToastContainer />
       </Paper>
     );

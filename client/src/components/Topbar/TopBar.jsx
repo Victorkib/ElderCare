@@ -243,6 +243,30 @@ export default function TopBar() {
                     }`}
                   >
                     <Link
+                      to="/billing"
+                      className={`billing-link ${
+                        activeLink === '/billing' ? 'active' : ''
+                      }`}
+                      onClick={() => {
+                        setActiveLink('/billing');
+                        closeMenus();
+                      }}
+                    >
+                      <User size={18} /> Billing Settings
+                    </Link>
+                    {/* <Link
+                      to="/deepBilling"
+                      className={`deepBilling-link ${
+                        activeLink === '/deepBilling' ? 'active' : ''
+                      }`}
+                      onClick={() => {
+                        setActiveLink('/deepBilling');
+                        closeMenus();
+                      }}
+                    >
+                      <User size={18} /> DeepBilling Settings
+                    </Link> */}
+                    {/* <Link
                       to="/profile"
                       className={`profile-link ${
                         activeLink === '/profile' ? 'active' : ''
@@ -253,7 +277,7 @@ export default function TopBar() {
                       }}
                     >
                       <User size={18} /> Profile Settings
-                    </Link>
+                    </Link> */}
                     <Link
                       to="/accountSettings"
                       className={`profile-link ${

@@ -3,6 +3,18 @@ import Caregiver from '../models/caregiver.model.js';
 import Elder from '../models/elder.model.js';
 import Event from '../models/event.model.js';
 import HealthLog from '../models/healthLog.model.js';
+import mongoose from 'mongoose';
+import cloudinary from 'cloudinary';
+import dotenv from 'dotenv';
+
+dotenv.config();
+
+// Configure Cloudinary (Ensure you have the correct credentials set up)
+cloudinary.v2.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
 // Register a new elder
 export const registerElder = async (req, res) => {
@@ -80,10 +92,11 @@ export const getAllELderWithoutFiltering = async (req, res) => {
   }
 };
 
-// Get a single elder by ID
 export const getElder = async (req, res) => {
   try {
-    const elder = await Elder.findById(req.params.id);
+    const elder = await Elder.findById(req.params.id).populate(
+      'assignedCaregivers'
+    );
 
     if (!elder) {
       return res.status(404).json({
@@ -141,6 +154,68 @@ export const updateElder = async (req, res) => {
       },
     });
   } catch (error) {
+    res.status(500).json({
+      status: 'error',
+      message: error.message || 'Server error',
+    });
+  }
+};
+
+export const updateElderImage = async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  try {
+    const elder = await Elder.findById(req.params.id).session(session);
+
+    if (!elder) {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(404).json({
+        status: 'error',
+        message: 'No elder found with that ID',
+      });
+    }
+
+    // If a new photo is provided, delete the old one
+    if (req.body.photo && elder.photo) {
+      const oldPhotoPublicId = elder.photo.split('/').pop().split('.')[0];
+
+      try {
+        await cloudinary.v2.uploader.destroy(`avatars/${oldPhotoPublicId}`);
+      } catch (error) {
+        console.error('Failed to delete old image from Cloudinary:', error);
+        await session.abortTransaction();
+        session.endSession();
+        return res.status(500).json({
+          status: 'error',
+          message: 'Failed to delete old image from Cloudinary',
+        });
+      }
+    }
+
+    // Update elder data with the new image URL
+    const updatedElder = await Elder.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      {
+        new: true,
+        runValidators: true,
+      }
+    ).session(session);
+
+    await session.commitTransaction();
+    session.endSession();
+
+    res.status(200).json({
+      status: 'success',
+      data: {
+        elder: updatedElder,
+      },
+    });
+  } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
     res.status(500).json({
       status: 'error',
       message: error.message || 'Server error',
@@ -497,7 +572,10 @@ export const assignCaregiver = async (req, res) => {
     const { caregiverId } = req.body;
 
     // Validate IDs
-    if (!isValidObjectId(elderId) || !isValidObjectId(caregiverId)) {
+    if (
+      !mongoose.Types.ObjectId.isValid(elderId) ||
+      !mongoose.Types.ObjectId.isValid(caregiverId)
+    ) {
       return res
         .status(400)
         .json({ success: false, error: 'Invalid ID format' });
@@ -518,10 +596,7 @@ export const assignCaregiver = async (req, res) => {
     }
 
     // Check how many elders the caregiver is already assigned to
-    const assignedCount = await Elder.countDocuments({
-      assignedCaregivers: caregiverId,
-    });
-    if (assignedCount >= 5) {
+    if (caregiver.assignedElders.length >= 5) {
       return res.status(400).json({
         success: false,
         error: 'Caregiver has reached the maximum limit of 5 elders',
@@ -536,14 +611,19 @@ export const assignCaregiver = async (req, res) => {
       });
     }
 
-    // Assign the caregiver (adding to the array)
+    // Assign the caregiver to the elder
     elder.assignedCaregivers.push(caregiverId);
     await elder.save();
+
+    // Assign the elder to the caregiver
+    caregiver.assignedElders.push(new mongoose.Types.ObjectId(elderId));
+    await caregiver.save();
 
     res.status(200).json({
       success: true,
       message: 'Caregiver assigned successfully',
       assignedCaregivers: elder.assignedCaregivers,
+      assignedElders: caregiver.assignedElders,
     });
   } catch (error) {
     console.error('Error assigning caregiver:', error);

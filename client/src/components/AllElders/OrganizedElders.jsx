@@ -32,6 +32,8 @@ import {
   Favorite,
   Warning,
   LocalHospital,
+  Person,
+  Schedule,
 } from '@mui/icons-material';
 import apiRequest from '../../utils/api';
 import { toast, ToastContainer } from 'react-toastify';
@@ -372,7 +374,14 @@ const OrganizedElders = () => {
             navigate(`/elderProfile/${selectedElder.id}`);
           }}
         >
-          View Details
+          <Button
+            startIcon={<Person />}
+            variant="contained"
+            size="small"
+            sx={{ mr: 1 }}
+          >
+            Profile
+          </Button>
         </MenuItem>
         <MenuItem
           onClick={() => {
@@ -383,7 +392,14 @@ const OrganizedElders = () => {
             });
           }}
         >
-          Schedule Checkup
+          <Button
+            variant="contained"
+            startIcon={<Schedule />}
+            size="small"
+            sx={{ mr: 1 }}
+          >
+            Schedule Manager
+          </Button>
         </MenuItem>
         <MenuItem onClick={handleMenuClose}>Update Care Plan</MenuItem>
         <MenuItem onClick={handleMenuClose} sx={{ color: 'error.main' }}>

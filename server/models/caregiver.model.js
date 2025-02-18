@@ -7,7 +7,7 @@ const caregiverSchema = new mongoose.Schema({
   specialization: { type: String, required: true },
   certification: { type: String, required: true },
   availability: { type: String, required: true },
-  assignedElders: { type: [String], default: [] },
+  assignedElders: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Elder' }], // Updated to store ObjectIds
   status: { type: String, default: 'Active' },
   yearsOfExperience: { type: Number, required: true },
   languages: { type: [String], default: [] },

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useSelector } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 const LoggedInLandingPage = () => {
   const navigate = useNavigate();
@@ -76,13 +76,15 @@ const LoggedInLandingPage = () => {
             Welcome back, {loggedInUser.firstName} ({loggedInUser.profession})
           </p>
         </div>
-        <img
-          src={
-            loggedInUser.profile ? loggedInUser.profile : '/userProfile.avif'
-          }
-          alt="Profile"
-          className="w-12 h-12 rounded-full"
-        />
+        <Link to="/accountSettings">
+          <img
+            src={
+              loggedInUser.profile ? loggedInUser.profile : '/userProfile.avif'
+            }
+            alt="Profile"
+            className="w-12 h-12 rounded-full"
+          />
+        </Link>
       </header>
 
       {/* Quick Actions Section */}

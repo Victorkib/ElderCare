@@ -31,6 +31,8 @@ import {
 } from '@mui/icons-material';
 import Pagination from 'react-js-pagination';
 import apiRequest from '../../../utils/api';
+import { useNavigate } from 'react-router-dom';
+import { TailSpin } from 'react-loader-spinner';
 // import 'react-js-pagination/dist/Pagination.css';
 
 const ClaudeCaregiverManagement = () => {
@@ -55,6 +57,7 @@ const ClaudeCaregiverManagement = () => {
     },
     // Add more caregivers as needed
   ]);
+  const [loading, setLoading] = useState(false);
   const [openDialog, setOpenDialog] = useState(false);
   const [selectedCaregiver, setSelectedCaregiver] = useState(null);
   const [snackbar, setSnackbar] = useState({
@@ -66,6 +69,7 @@ const ClaudeCaregiverManagement = () => {
   const [pageNumber, setPageNumber] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
   const caregiversPerPage = 2;
+  const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
     name: '',
@@ -88,6 +92,7 @@ const ClaudeCaregiverManagement = () => {
   }, [pageNumber, filterStatus]);
 
   const fetchCaregivers = async () => {
+    setLoading(true);
     try {
       const response = await apiRequest.get('/caregivers', {
         params: {
@@ -101,9 +106,11 @@ const ClaudeCaregiverManagement = () => {
     } catch (error) {
       setSnackbar({
         open: true,
-        message: 'Failed to fetch caregivers',
+        message: error?.response?.data?.message || 'Failed to fetch caregivers',
         severity: 'error',
       });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -138,6 +145,7 @@ const ClaudeCaregiverManagement = () => {
   };
 
   const handleSubmit = async () => {
+    setLoading(true);
     try {
       if (selectedCaregiver) {
         await apiRequest.put(`/caregivers/${selectedCaregiver._id}`, formData);
@@ -159,13 +167,16 @@ const ClaudeCaregiverManagement = () => {
     } catch (error) {
       setSnackbar({
         open: true,
-        message: 'Failed to submit caregiver',
+        message: error?.response?.data?.message || 'Failed to submit caregiver',
         severity: 'error',
       });
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleDeleteCaregiver = async (id) => {
+    setLoading(true);
     try {
       await apiRequest.delete(`/caregivers/${id}`);
       setSnackbar({
@@ -177,10 +188,16 @@ const ClaudeCaregiverManagement = () => {
     } catch (error) {
       setSnackbar({
         open: true,
-        message: 'Failed to delete caregiver',
+        message: error?.response?.data?.message || 'Failed to delete caregiver',
         severity: 'error',
       });
+    } finally {
+      setLoading(false);
     }
+  };
+
+  const handleProfileClick = (caregiver) => {
+    navigate(`/profile/${caregiver._id}`);
   };
 
   const handleStatusChange = async (id, newStatus) => {
@@ -255,6 +272,12 @@ const ClaudeCaregiverManagement = () => {
                     <MenuItem value="On Leave">On Leave</MenuItem>
                   </Select>
                 </FormControl>
+                <IconButton
+                  onClick={() => handleProfileClick(caregiver)}
+                  color="primary"
+                >
+                  <PersonIcon />
+                </IconButton>
                 <IconButton
                   onClick={() => handleOpenDialog(caregiver)}
                   color="primary"
@@ -516,6 +539,18 @@ const ClaudeCaregiverManagement = () => {
           {snackbar.message}
         </Alert>
       </Snackbar>
+
+      {loading && (
+        <div className="loader-overlay">
+          <TailSpin
+            height="100"
+            width="100"
+            color="#4fa94d"
+            ariaLabel="loading"
+            visible={true}
+          />
+        </div>
+      )}
     </Box>
   );
 };

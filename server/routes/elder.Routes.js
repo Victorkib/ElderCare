@@ -15,6 +15,7 @@ import {
   // getAllOrganizedElders,
   getAllEldersDetails,
   assignCaregiver,
+  updateElderImage,
 } from '../controllers/elder.controller.js';
 
 const router = express.Router();
@@ -25,6 +26,7 @@ router.get('/', getAllElders);
 router.get('/getAllElders', getAllELderWithoutFiltering);
 router.get('/getSingleElder/:id', getElder);
 router.patch('/:id', updateElder);
+router.patch('/updatePhoto/:id', updateElderImage);
 router.delete('/:id', deleteElder);
 
 // Specialized routes

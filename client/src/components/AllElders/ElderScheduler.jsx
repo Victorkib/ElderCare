@@ -112,6 +112,9 @@ const ElderScheduler = () => {
           setSelectedElders([elderId]);
         }
       } catch (error) {
+        toast.error(
+          error?.response?.data?.message || 'Error fetching user data!'
+        );
         console.error('Error fetching data:', error);
       } finally {
         setLoading(false);
@@ -165,7 +168,7 @@ const ElderScheduler = () => {
       setEvents((prev) => [...prev, response.data]);
       setOpenEventModal(false);
     } catch (error) {
-      toast.error(error.response.data.message || 'Error creating Event!');
+      toast.error(error?.response?.data?.message || 'Error creating Event!');
       console.error('Error saving event:', error);
     } finally {
       setLoading(false);
@@ -222,7 +225,7 @@ const ElderScheduler = () => {
       }
     } catch (error) {
       console.error('Error deleting event:', error);
-      toast.error(error.response.data.message || 'Error Deleting Event!');
+      toast.error(error?.response?.data?.message || 'Error Deleting Event!');
     } finally {
       setLoading(false);
     }
@@ -262,10 +265,14 @@ const ElderScheduler = () => {
       field: 'elders',
       headerName: 'Elders',
       width: 200,
-      valueGetter: (params) =>
-        params?.row?.elderIds
-          ? params?.row?.elderIds?.map((elder) => elder?.firstName).join(', ')
-          : 'No elders',
+      valueGetter: (params) => {
+        const eldersArray = params?.row?.elderIds || [];
+        return eldersArray.length > 0
+          ? eldersArray
+              .map((elder) => `${elder.firstName} ${elder.lastName}`)
+              .join(', ')
+          : 'No elders';
+      },
     },
     {
       field: 'actions',

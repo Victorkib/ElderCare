@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Dialog } from '@headlessui/react';
 import {
   Calendar,
   Clock,
@@ -8,13 +9,17 @@ import {
   Shield,
   Phone,
   ArrowUpCircle,
+  PlayCircle,
+  Loader2,
+  X,
 } from 'lucide-react';
 import { FaHeart } from 'react-icons/fa';
-import './ElderlyCareLanding.scss';
 import { Link } from 'react-router-dom';
 
 const ElderlyCareLanding = () => {
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isVideoOpen, setIsVideoOpen] = useState(false);
+  const [isVideoLoading, setIsVideoLoading] = useState(true);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -24,27 +29,34 @@ const ElderlyCareLanding = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  useEffect(() => {
+    if (isVideoOpen) {
+      const timer = setTimeout(() => setIsVideoLoading(false), 1500);
+      return () => clearTimeout(timer);
+    }
+  }, [isVideoOpen]);
+
   const features = [
     {
-      icon: <Bell size={32} />,
+      icon: <Bell className="w-8 h-8" />,
       title: 'Medication Reminders',
       description:
         'Simple and clear medication reminders to ensure proper dosage and timing.',
     },
     {
-      icon: <Clipboard size={32} />,
+      icon: <Clipboard className="w-8 h-8" />,
       title: 'Health Logs',
       description:
         'Easy-to-use logs for tracking daily activities, meals, and health observations.',
     },
     {
-      icon: <Calendar size={32} />,
+      icon: <Calendar className="w-8 h-8" />,
       title: 'Appointment Management',
       description:
         'Keep track of medical appointments and important dates in one place.',
     },
     {
-      icon: <Shield size={32} />,
+      icon: <Shield className="w-8 h-8" />,
       title: 'Emergency Contacts',
       description:
         'Quick access to important contact information for emergencies.',
@@ -73,136 +85,164 @@ const ElderlyCareLanding = () => {
   ];
 
   return (
-    <div className="ecs-landing">
-      {/* <header className={`ecs-header ${isScrolled ? 'scrolled' : ''}`}>
-        <div className="container">
-          <div className="logo">
-            <Heart className="logo-icon" />
-            <h1>ElderlyCare</h1>
-          </div>
-
-          <div
-            className="mobile-menu-icon"
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-          >
-            {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
-          </div>
-
-          <nav className={`nav-menu ${isMenuOpen ? 'open' : ''}`}>
-            <a href="#features">Features</a>
-            <a href="#benefits">Benefits</a>
-            <a href="#contact">Contact</a>
-
-            <Link className="login-button" to={'/login'}>
-              Login
-            </Link>
-            <button className="cta-button">Get Started</button>
-          </nav>
-        </div>
-      </header> */}
-
-      <section className="hero">
-        <div className="container">
-          <div className="hero-content">
-            <h1>Simplifying Elderly Care Management</h1>
-            <p>
+    <div className="min-h-screen mt-10 bg-gradient-to-b from-[#f5f7fa] to-white">
+      {/* Hero Section */}
+      <section className="py-16 px-4">
+        <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-12 items-center">
+          <div className="space-y-6">
+            <h1 className="text-4xl font-bold text-[#2c3e50] leading-tight">
+              Simplifying Elderly Care Management
+            </h1>
+            <p className="text-xl text-[#647380]">
               A straightforward platform that helps caregivers provide better
               support for elderly individuals through easy-to-use tools and
               reliable features.
             </p>
-            <div className="hero-buttons">
-              <button className="primary-button">Start Free Trial</button>
-              <button className="secondary-button">Watch Demo</button>
+            <div className="flex gap-4">
+              <button className="bg-[#4a90e2] text-white px-8 py-4 rounded-xl font-semibold hover:bg-[#357abd] transition-all hover:-translate-y-1">
+                Start Free Trial
+              </button>
+              <button
+                onClick={() => setIsVideoOpen(true)}
+                className="flex items-center gap-2 border-2 border-[#2c3e50] px-8 py-4 rounded-xl font-semibold hover:bg-[#2c3e50]/10 transition-all hover:-translate-y-1"
+              >
+                <PlayCircle className="w-6 h-6" />
+                Watch Demo
+              </button>
             </div>
           </div>
-          <div className="hero-image">
+
+          <div className="relative group">
+            <div className="absolute inset-0 bg-[#4a90e2] rounded-2xl transform rotate-2 scale-105 transition-transform duration-300 group-hover:rotate-1 group-hover:scale-110"></div>
             <img
               src="/ElderlyHands.jpg"
               alt="Caregiver using ElderlyCare system"
+              className="relative rounded-2xl transform transition-transform duration-300 group-hover:scale-102 shadow-xl"
             />
           </div>
         </div>
       </section>
 
-      <section id="features" className="features">
-        <div className="container">
-          <h2>Simple Tools for Better Care</h2>
-          <p className="section-subtitle">
+      {/* Features Section */}
+      <section id="features" className="py-20 bg-white">
+        <div className="max-w-6xl mx-auto px-4">
+          <h2 className="text-4xl font-bold text-center text-[#2c3e50] mb-4">
+            Simple Tools for Better Care
+          </h2>
+          <p className="text-xl text-[#647380] text-center mb-16">
             Everything you need to provide quality care, all in one place
           </p>
 
-          <div className="features-grid">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
             {features.map((feature, index) => (
-              <div key={index} className="feature-card">
-                <div className="feature-icon">{feature.icon}</div>
-                <h3>{feature.title}</h3>
-                <p>{feature.description}</p>
+              <div
+                key={index}
+                className="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300"
+              >
+                <div className="text-[#4a90e2] mb-6">{feature.icon}</div>
+                <h3 className="text-xl font-semibold text-[#2c3e50] mb-4">
+                  {feature.title}
+                </h3>
+                <p className="text-[#647380]">{feature.description}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      <section className="how-it-works">
-        <div className="container">
-          <h2>How It Works</h2>
-          <p className="section-subtitle">
+      {/* How It Works Section */}
+      <section className="py-20 bg-[#f5f7fa]">
+        <div className="max-w-6xl mx-auto px-4">
+          <h2 className="text-4xl font-bold text-center text-[#2c3e50] mb-4">
+            How It Works
+          </h2>
+          <p className="text-xl text-[#647380] text-center mb-16">
             Three simple steps to better care management
           </p>
 
-          <div className="steps">
-            {/* Step 1 */}
-            <div className="step">
-              <div className="step-number">1</div>
-              <h3>Set Up Profile</h3>
-              <p>
+          <div className="grid md:grid-cols-3 gap-8">
+            <div className="bg-white p-8 rounded-2xl text-center">
+              <div className="w-12 h-12 bg-[#4a90e2] text-white rounded-full flex items-center justify-center mx-auto mb-6 text-xl font-bold">
+                1
+              </div>
+              <h3 className="text-xl font-semibold text-[#2c3e50] mb-4">
+                Set Up Profile
+              </h3>
+              <p className="text-[#647380] mb-6">
                 Create profiles for elderly individuals with essential health
                 information and preferences.
               </p>
-              <Link to="/profile-setup" className="step-link">
+              <Link
+                to="/profile-setup"
+                className="text-[#4a90e2] font-semibold hover:underline"
+              >
                 Learn More
               </Link>
             </div>
-
             {/* Step 2 */}
-            <div className="step">
-              <div className="step-number">2</div>
-              <h3>Add Care Details</h3>
-              <p>
+            <div className="bg-white p-8 rounded-2xl text-center">
+              <div className="w-12 h-12 bg-[#4a90e2] text-white rounded-full flex items-center justify-center mx-auto mb-6 text-xl font-bold">
+                1
+              </div>
+              <h3 className="text-xl font-semibold text-[#2c3e50] mb-4">
+                Add Care Details
+              </h3>
+              <p className="text-[#647380] mb-6">
                 Input medications, appointments, and daily care routines into
                 the simple scheduler.
               </p>
-              <Link to="/Scheduler" className="step-link">
+              <Link
+                to="/Scheduler"
+                className="text-[#4a90e2] font-semibold hover:underline"
+              >
+                Learn More
+              </Link>
+            </div>
+            {/* Repeat for  3 */}
+            <div className="bg-white p-8 rounded-2xl text-center">
+              <div className="w-12 h-12 bg-[#4a90e2] text-white rounded-full flex items-center justify-center mx-auto mb-6 text-xl font-bold">
+                1
+              </div>
+
+              <h3 className="text-xl font-semibold text-[#2c3e50] mb-4">
+                Manage Care
+              </h3>
+              <p className="text-[#647380] mb-6">
+                Receive reminders, log activities, and coordinate care with
+                other caregivers.
+              </p>
+              <Link
+                to="/CareAnalytics"
+                className="text-[#4a90e2] font-semibold hover:underline"
+              >
                 Learn More
               </Link>
             </div>
 
-            {/* Step 3 */}
-            <div className="step">
-              <div className="step-number">3</div>
-              <h3>Manage Care</h3>
-              <p>
-                Receive reminders, log activities, and coordinate care with
-                other caregivers.
-              </p>
-              <Link to="/CareAnalytics" className="step-link">
-                Learn More
-              </Link>
-            </div>
+            {/* Repeat for steps 2 and 3 */}
           </div>
         </div>
       </section>
 
-      <section id="benefits" className="benefits">
-        <div className="container">
-          <h2>Benefits for Everyone</h2>
-          <div className="benefits-grid">
+      {/* Benefits Section */}
+      <section id="benefits" className="py-20 bg-white">
+        <div className="max-w-6xl mx-auto px-4">
+          <h2 className="text-4xl font-bold text-center text-[#2c3e50] mb-16">
+            Benefits for Everyone
+          </h2>
+
+          <div className="grid md:grid-cols-2 gap-8">
             {benefits.map((benefit, index) => (
-              <div key={index} className="benefit-card">
-                <h3>{benefit.title}</h3>
-                <ul>
+              <div key={index} className="bg-[#f5f7fa] p-8 rounded-2xl">
+                <h3 className="text-2xl font-semibold text-[#4a90e2] mb-6">
+                  {benefit.title}
+                </h3>
+                <ul className="space-y-4">
                   {benefit.points.map((point, i) => (
-                    <li key={i}>{point}</li>
+                    <li key={i} className="flex items-start text-[#647380]">
+                      <span className="text-[#4a90e2] mr-2">•</span>
+                      {point}
+                    </li>
                   ))}
                 </ul>
               </div>
@@ -211,86 +251,153 @@ const ElderlyCareLanding = () => {
         </div>
       </section>
 
-      <section className="trust-banner">
-        <div className="container">
-          <div className="trust-content">
-            <div className="icon-container">
-              <FaHeart size={48} />
+      {/* Trust Banner */}
+      <section className="py-20 bg-gradient-to-b from-[#f5f7fa] to-white">
+        <div className="max-w-4xl mx-auto px-4">
+          <div className="bg-white/80 backdrop-blur-sm p-12 rounded-3xl shadow-lg text-center">
+            <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mx-auto mb-8 shadow-md">
+              <FaHeart className="w-12 h-12 text-[#e86d6d]" />
             </div>
-            <h2>Trusted by Caregivers</h2>
-            <p>
+            <h2 className="text-4xl font-bold text-[#2c3e50] mb-6">
+              Trusted by Caregivers
+            </h2>
+            <p className="text-xl text-[#647380] mb-8">
               Join hundreds of caregivers who use ElderlyCare to provide better
               support for their loved ones.
             </p>
-            <button className="primary-button">Join Today</button>
+            <button className="bg-[#4a90e2] text-white px-8 py-4 rounded-xl font-semibold hover:bg-[#357abd] transition-all">
+              Join Today
+            </button>
           </div>
         </div>
       </section>
 
-      <section id="contact" className="contact">
-        <div className="container">
-          <div className="contact-content">
-            <div className="contact-info">
-              <h2>Need Help?</h2>
-              <p>
-                Our support team is here to assist you with any questions about
-                ElderlyCare.
-              </p>
-              <div className="contact-methods">
-                <div className="contact-method">
-                  <Phone size={24} />
-                  <span>1-800-ELDERLY</span>
-                </div>
-                <div className="contact-method">
-                  <Clock size={24} />
-                  <span>Available 24/7</span>
-                </div>
+      {/* Contact Section */}
+      <section id="contact" className="py-20 bg-[#f5f7fa]">
+        <div className="max-w-4xl mx-auto px-4">
+          <div className="bg-white p-12 rounded-3xl shadow-lg text-center">
+            <h2 className="text-4xl font-bold text-[#2c3e50] mb-6">
+              Need Help?
+            </h2>
+            <p className="text-xl text-[#647380] mb-8">
+              Our support team is here to assist you with any questions about
+              ElderlyCare.
+            </p>
+            <div className="flex flex-col md:flex-row justify-center gap-8">
+              <div className="flex items-center gap-2 text-[#4a90e2]">
+                <Phone className="w-6 h-6" />
+                <span className="text-xl font-medium">1-800-ELDERLY</span>
+              </div>
+              <div className="flex items-center gap-2 text-[#4a90e2]">
+                <Clock className="w-6 h-6" />
+                <span className="text-xl font-medium">Available 24/7</span>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      <footer className="footer">
-        <div className="container">
-          <div className="footer-content">
-            <div className="footer-section">
-              <div className="logo">
-                <Heart className="logo-icon" />
-                <h3>ElderlyCare</h3>
-              </div>
-              <p>Simplifying elderly care management for everyone.</p>
+      {/* Footer */}
+      <footer className="bg-[#2c3e50] text-white py-12">
+        <div className="max-w-6xl mx-auto px-4 grid md:grid-cols-4 gap-8">
+          <div>
+            <div className="flex items-center gap-2 mb-4">
+              <Heart className="w-8 h-8 text-[#e86d6d]" />
+              <h3 className="text-2xl font-semibold">ElderlyCare</h3>
             </div>
-            <div className="footer-section">
-              <h4>Quick Links</h4>
-              <a href="#features">Features</a>
-              <a href="#benefits">Benefits</a>
-              <a href="#contact">Contact</a>
-            </div>
-            <div className="footer-section">
-              <h4>Support</h4>
-              <a href="#help">Help Center</a>
-              <a href="#privacy">Privacy Policy</a>
-              <a href="#terms">Terms of Service</a>
-            </div>
-            <div className="footer-section">
-              <h4>Contact</h4>
-              <p>1-800-ELDERLY</p>
-              <p>support@elderlycare.com</p>
-            </div>
+            <p className="text-[#ffffffcc]">
+              Simplifying elderly care management for everyone.
+            </p>
           </div>
-          <div className="footer-bottom">
-            <p>&copy; 2024 ElderlyCare. All rights reserved.</p>
+          <div>
+            <h4 className="text-xl font-semibold mb-4">Quick Links</h4>
+            <a
+              href="#features"
+              className="block text-[#ffffffcc] hover:text-white mb-2"
+            >
+              Features
+            </a>
+            <a
+              href="#benefits"
+              className="block text-[#ffffffcc] hover:text-white mb-2"
+            >
+              Benefits
+            </a>
+            <a
+              href="#contact"
+              className="block text-[#ffffffcc] hover:text-white"
+            >
+              Contact
+            </a>
           </div>
+          <div>
+            <h4 className="text-xl font-semibold mb-4">Support</h4>
+            <a
+              href="#help"
+              className="block text-[#ffffffcc] hover:text-white mb-2"
+            >
+              Help Center
+            </a>
+            <a
+              href="#privacy"
+              className="block text-[#ffffffcc] hover:text-white mb-2"
+            >
+              Privacy Policy
+            </a>
+            <a
+              href="#terms"
+              className="block text-[#ffffffcc] hover:text-white"
+            >
+              Terms of Service
+            </a>
+          </div>
+          <div>
+            <h4 className="text-xl font-semibold mb-4">Contact</h4>
+            <p className="text-[#ffffffcc] mb-2">1-800-ELDERLY</p>
+            <p className="text-[#ffffffcc]">support@elderlycare.com</p>
+          </div>
+        </div>
+        <div className="border-t border-[#ffffff1a] mt-8 pt-8 text-center text-[#ffffffcc]">
+          &copy; 2024 ElderlyCare. All rights reserved.
         </div>
       </footer>
 
-      {/* <button
-        className={`scroll-to-top ${isScrolled ? 'visible' : ''}`}
-        onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+      {/* Video Modal */}
+      <Dialog
+        open={isVideoOpen}
+        onClose={() => setIsVideoOpen(false)}
+        className="fixed inset-0 z-50 flex items-center justify-center mt-16"
       >
-        <ArrowUpCircle size={24} />
-      </button> */}
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" />
+
+        <div className="relative bg-white rounded-3xl max-w-4xl w-full mx-4 p-1 shadow-2xl transform transition-all duration-300 scale-95 hover:scale-100">
+          <button
+            onClick={() => setIsVideoOpen(false)}
+            className="absolute -right-4 -top-4 z-10 bg-white p-2 rounded-full shadow-lg hover:scale-110 transition-transform"
+          >
+            <X className="w-8 h-8 text-[#2c3e50]" />
+          </button>
+
+          {isVideoLoading && (
+            <div className="absolute inset-0 flex items-center justify-center bg-[#f5f7fa] rounded-2xl">
+              <Loader2 className="w-12 h-12 text-[#4a90e2] animate-spin" />
+              <div className="absolute inset-0 border-4 border-[#4a90e2]/20 rounded-2xl animate-ping"></div>
+            </div>
+          )}
+
+          <div className="aspect-video bg-gray-100 rounded-2xl overflow-hidden">
+            <iframe
+              className={`w-full h-full ${
+                isVideoLoading ? 'opacity-0' : 'opacity-100'
+              } transition-opacity duration-500`}
+              src="https://www.youtube.com/embed/e4KAFXztwgo?si=eG9pBWLShliHwOc4"
+              title="Elderly Care Demo"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              onLoad={() => setIsVideoLoading(false)}
+            />
+          </div>
+        </div>
+      </Dialog>
     </div>
   );
 };

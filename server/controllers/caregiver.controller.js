@@ -20,7 +20,25 @@ export const getCaregivers = async (req, res) => {
       currentPage: page,
     });
   } catch (error) {
-    res.status(500).json({ message: 'Failed to fetch caregivers', error });
+    res
+      .status(500)
+      .json({ message: error.message || 'Failed to fetch caregivers' });
+  }
+};
+
+//get single caregiver
+export const getSingleCaregiver = async (req, res) => {
+  const { caregiverId } = req.params;
+  try {
+    const caregiver = await Caregiver.findById(caregiverId);
+    if (!caregiver) {
+      return res.status(400).json({ message: 'No caregiver found!' });
+    }
+    res.status(200).json(caregiver);
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: error.message || 'Failed to fetch single caregiver' });
   }
 };
 

@@ -248,7 +248,7 @@ const ElderlyRegistration = () => {
           <UploadWidget
             uwConfig={{
               cloudName: 'victorkib',
-              uploadPreset: 'estate',
+              uploadPreset: 'eldercare',
               multiple: false,
               maxImageFileSize: 2000000,
               folder: 'avatars',
@@ -1066,7 +1066,7 @@ const ElderlyRegistration = () => {
             <UploadWidget
               uwConfig={{
                 cloudName: 'victorkib',
-                uploadPreset: 'estate',
+                uploadPreset: 'eldercare',
                 multiple: true,
                 folder: 'insurance',
               }}
@@ -1091,7 +1091,7 @@ const ElderlyRegistration = () => {
             <UploadWidget
               uwConfig={{
                 cloudName: 'victorkib',
-                uploadPreset: 'estate',
+                uploadPreset: 'eldercare',
                 multiple: true,
                 folder: 'legal',
               }}
@@ -1118,7 +1118,7 @@ const ElderlyRegistration = () => {
             <UploadWidget
               uwConfig={{
                 cloudName: 'victorkib',
-                uploadPreset: 'estate',
+                uploadPreset: 'eldercare',
                 multiple: true,
                 folder: 'medical',
               }}

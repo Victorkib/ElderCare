@@ -348,8 +348,7 @@ export const Register = () => {
                   className={errors.agreeToTerms ? 'error' : ''}
                 />
                 <span>
-                  I agree to the <a href="/terms">Terms of Service</a> and{' '}
-                  <a href="/privacy">Privacy Policy</a>
+                  I agree to the <Link to="/terms">Terms of Service.</Link>
                 </span>
               </label>
               {errors.agreeToTerms && (
