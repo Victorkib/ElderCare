@@ -220,7 +220,7 @@ const OrganizedElders = () => {
     }
   };
   return (
-    <Box sx={{ p: 3, maxWidth: 1400, margin: '0 auto' }}>
+    <Box sx={{ p: 3, maxWidth: 1400, margin: '0 auto', mt: '5%' }}>
       {/* Header */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
         <Box>
@@ -235,13 +235,14 @@ const OrganizedElders = () => {
           variant="contained"
           startIcon={<Add />}
           sx={{ height: 'fit-content' }}
+          onClick={() => navigate('/elderReg')}
         >
           Add New Resident
         </Button>
       </Box>
 
       {/* Stats Cards */}
-      <Grid container spacing={3} sx={{ mb: 3 }}>
+      <Grid container spacing={3} sx={{ mb: 1 }}>
         {stats.map((stat, index) => (
           <Grid item xs={12} sm={6} md={3} key={index}>
             <Card>
@@ -262,7 +263,7 @@ const OrganizedElders = () => {
       </Grid>
 
       {/* Filters */}
-      <Paper sx={{ p: 2, mb: 3 }}>
+      <Paper sx={{ p: 2, mb: 1 }}>
         <Grid container spacing={2} alignItems="center">
           <Grid item xs={12} md={4}>
             <TextField
