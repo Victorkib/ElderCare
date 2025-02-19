@@ -305,7 +305,9 @@ export const updateElderImage = async (req, res) => {
       const oldPhotoPublicId = elder.photo.split('/').pop().split('.')[0];
 
       try {
-        await cloudinary.v2.uploader.destroy(`avatars/${oldPhotoPublicId}`);
+        await cloudinary.v2.uploader.destroy(
+          `elderAvatars/${oldPhotoPublicId}`
+        );
       } catch (error) {
         console.error('Failed to delete old image from Cloudinary:', error);
         await session.abortTransaction();
