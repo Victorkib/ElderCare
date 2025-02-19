@@ -33,7 +33,7 @@ export const registerElder = async (req, res) => {
   } catch (error) {
     res.status(500).json({
       status: 'error',
-      message: error.message || 'Server error',
+      message: error?.message || 'Server error',
     });
   }
 };
@@ -165,7 +165,7 @@ export const updateElder = async (req, res) => {
 
 // Extract Cloudinary public ID
 const getPublicIdFromUrl = (url) => {
-  return url.split('/').slice(-2).join('/').split('.')[0]; // Ensures full path is extracted
+  return url?.split('/')?.slice(-2)?.join('/')?.split('.')[0] || '';
 };
 
 // Delete files from Cloudinary
@@ -173,7 +173,9 @@ const deleteFilesFromCloudinary = async (urls) => {
   try {
     for (const url of urls) {
       const publicId = getPublicIdFromUrl(url);
-      await cloudinary.v2.uploader.destroy(publicId);
+      if (publicId) {
+        await cloudinary.v2.uploader.destroy(publicId);
+      }
     }
   } catch (error) {
     console.error('Error deleting files from Cloudinary:', error);
@@ -420,10 +422,10 @@ export const deleteElderData = async (req, res) => {
     ];
 
     for (const field of fileFields) {
-      const files = elder.get(field);
-      if (Array.isArray(files)) {
+      const files = elder.get(field) || [];
+      if (Array.isArray(files) && files.length > 0) {
         await deleteFilesFromCloudinary(files);
-      } else if (typeof files === 'string') {
+      } else if (typeof files === 'string' && files.trim() !== '') {
         await deleteFilesFromCloudinary([files]);
       }
     }

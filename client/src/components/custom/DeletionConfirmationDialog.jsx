@@ -25,6 +25,7 @@ import DescriptionIcon from '@mui/icons-material/Description';
 import PhotoIcon from '@mui/icons-material/Photo';
 import GroupRemoveIcon from '@mui/icons-material/GroupRemove';
 import StickyNote2Icon from '@mui/icons-material/StickyNote2';
+import { TailSpin } from 'react-loader-spinner';
 
 const DeletionConfirmationDialog = ({
   open,
@@ -184,6 +185,17 @@ const DeletionConfirmationDialog = ({
           {loading ? 'Deleting...' : 'Permanently Delete All Data'}
         </Button>
       </DialogActions>
+      {loading && (
+        <div className="loader-overlay">
+          <TailSpin
+            height="100"
+            width="100"
+            color="#4fa94d"
+            ariaLabel="loading"
+            visible={true}
+          />
+        </div>
+      )}
     </Dialog>
   );
 };

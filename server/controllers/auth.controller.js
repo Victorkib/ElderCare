@@ -97,6 +97,7 @@ export const register = async (req, res) => {
   }
 };
 
+const age = 1000 * 60 * 60 * 24 * 30;
 //login user
 export const login = async (req, res) => {
   const { email, password, rememberMe } = req.body;
@@ -122,7 +123,7 @@ export const login = async (req, res) => {
       { id: user._id, email: user.email },
       process.env.JWT_SECRET_KEY,
       {
-        expiresIn: rememberMe ? '30d' : '1h', // 30 days if rememberMe, 1 hour if not
+        expiresIn: rememberMe ? age : '1h', // 30 days if rememberMe, 1 hour if not
       }
     );
 
@@ -130,9 +131,9 @@ export const login = async (req, res) => {
     res
       .cookie('authToken', token, {
         httpOnly: true,
-        // secure: process.env.NODE_ENV === 'production', // Use HTTPS in production
-        // sameSite: 'strict', // CSRF protection
         maxAge: rememberMe ? 30 * 24 * 60 * 60 * 1000 : 60 * 60 * 1000, // 30 days or 1 hour
+        secure: true, // Only send cookie over HTTPS
+        sameSite: 'None', // Required for cross-site cookies
       })
       .status(200)
       .json({

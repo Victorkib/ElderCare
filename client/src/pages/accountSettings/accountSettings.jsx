@@ -235,7 +235,7 @@ const AccountSettings = () => {
     try {
       await apiRequest.delete('/deactivate');
       toast.success('Account successfully deactivated.');
-      window.location.href = '/logout';
+      await handleLogout();
     } catch (error) {
       console.error('Error deactivating account:', error);
       toast.error(

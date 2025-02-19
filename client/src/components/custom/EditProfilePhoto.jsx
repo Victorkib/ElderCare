@@ -64,7 +64,7 @@ const EditProfilePhoto = ({ userId, currentPhoto, onPhotoUpdated }) => {
               uploadPreset: 'eldercare',
               multiple: false,
               maxImageFileSize: 2000000,
-              folder: 'avatars',
+              folder: 'elderAvatars',
             }}
             onUploadSuccess={handlePhotoUpload}
             setLoading={setLoading}

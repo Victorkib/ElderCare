@@ -251,7 +251,7 @@ const ElderlyRegistration = () => {
               uploadPreset: 'eldercare',
               multiple: false,
               maxImageFileSize: 2000000,
-              folder: 'avatars',
+              folder: 'elderAvatars',
             }}
             onUploadSuccess={handlePhotoUpload}
             setLoading={setLoading}
@@ -1190,9 +1190,10 @@ const ElderlyRegistration = () => {
     } catch (error) {
       console.error('Registration error:', error);
       toast.error(
-        error.response.data.error || error.message || 'Registration Failed!'
+        error?.response?.data?.message ||
+          error.message ||
+          'Registration Failed!'
       );
-      alert('Failed to register. Please try again.');
     } finally {
       setLoading(false);
     }
