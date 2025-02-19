@@ -293,56 +293,39 @@ export const updateElderImage = async (req, res) => {
 
     if (!elder) {
       await session.abortTransaction();
-      session.endSession();
-      return res.status(404).json({
-        status: 'error',
-        message: 'No elder found with that ID',
-      });
+      return res
+        .status(404)
+        .json({ status: 'error', message: 'No elder found with that ID' });
     }
 
-    // If a new photo is provided, delete the old one
-    if (req.body.photo && elder.photo) {
-      const oldPhotoPublicId = elder?.photo?.split('/').pop().split('.')[0];
-
+    // If a new photo is provided and an old one exists, delete the old one
+    if (req.body.photo && elder.photo && req.body.photo !== elder.photo) {
       try {
-        await cloudinary.v2.uploader.destroy(oldPhotoPublicId);
+        await deleteFilesFromCloudinary([elder.photo]); // Use helper function
       } catch (error) {
-        console.error('Failed to delete old image from Cloudinary:', error);
         await session.abortTransaction();
-        session.endSession();
-        return res.status(500).json({
-          status: 'error',
-          message: 'Failed to delete old image from Cloudinary',
-        });
+        return res
+          .status(500)
+          .json({
+            status: 'error',
+            message: 'Failed to delete old image from Cloudinary',
+          });
       }
     }
 
     // Update elder data with the new image URL
-    const updatedElder = await Elder.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      {
-        new: true,
-        runValidators: true,
-      }
-    ).session(session);
+    elder.photo = req.body.photo || elder.photo;
+    await elder.save({ session });
 
     await session.commitTransaction();
-    session.endSession();
-
-    res.status(200).json({
-      status: 'success',
-      data: {
-        elder: updatedElder,
-      },
-    });
+    res.status(200).json({ status: 'success', data: { elder } });
   } catch (error) {
     await session.abortTransaction();
+    res
+      .status(500)
+      .json({ status: 'error', message: error.message || 'Server error' });
+  } finally {
     session.endSession();
-    res.status(500).json({
-      status: 'error',
-      message: error.message || 'Server error',
-    });
   }
 };
 
