@@ -31,6 +31,7 @@ import TermsAndConditions from './pages/TermsAndConditions/TermsAndConditions';
 import BillingPage from './pages/Billing/BillingPage';
 import DeepBillingPage from './pages/Billing/DeepBillingPage';
 import CaregiverProfile from './components/ElderCareManager/information';
+import ElderlyEdit from './components/ElderCareManager/ElderlyEdit';
 
 function App() {
   return (
@@ -58,6 +59,7 @@ function App() {
               />
               <Route path="/allHealthLogs" element={<NewHealthLogs />} />
               <Route path="/elderReg" element={<ElderlyRegistration />} />
+              <Route path="/elderEdit/:id" element={<ElderlyEdit />} />
               <Route path="/addHealthLog" element={<AddHealthLog />} />
               <Route path="/elderProfile/:elderId" element={<ElderProfile />} />
               <Route path="/scheduler" element={<ElderScheduler />} />

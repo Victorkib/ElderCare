@@ -253,8 +253,26 @@ const ClaudeCaregiverManagement = () => {
                   </Box>
                 </Grid>
                 <Grid item>
-                  <Typography variant="body2">
-                    Assigned Elders: {caregiver.assignedElders?.join(', ')}
+                  <Typography variant="body2" className="text-gray-700 mt-2">
+                    <span className="font-semibold text-gray-900">
+                      Assigned Elders:
+                    </span>{' '}
+                    {caregiver.assignedElders?.length > 0 ? (
+                      <ul className="list-disc pl-4 mt-1 text-gray-600">
+                        {caregiver.assignedElders.map((elder) => (
+                          <li key={elder._id} className="py-1">
+                            <span className="font-medium text-blue-600">
+                              {elder.firstName}
+                            </span>{' '}
+                            <span className="text-gray-500">
+                              (Room: {elder.roomNumber || 'N/A'})
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <span className="text-gray-500">None</span>
+                    )}
                   </Typography>
                 </Grid>
               </Grid>

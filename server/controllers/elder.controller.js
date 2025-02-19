@@ -6,6 +6,8 @@ import HealthLog from '../models/healthLog.model.js';
 import mongoose from 'mongoose';
 import cloudinary from 'cloudinary';
 import dotenv from 'dotenv';
+import Medication from '../models/Medication.model.js';
+import Note from '../models/elderNotes.model.js';
 
 dotenv.config();
 
@@ -161,6 +163,125 @@ export const updateElder = async (req, res) => {
   }
 };
 
+// Extract Cloudinary public ID
+const getPublicIdFromUrl = (url) => {
+  return url.split('/').slice(-2).join('/').split('.')[0]; // Ensures full path is extracted
+};
+
+// Delete files from Cloudinary
+const deleteFilesFromCloudinary = async (urls) => {
+  try {
+    for (const url of urls) {
+      const publicId = getPublicIdFromUrl(url);
+      await cloudinary.v2.uploader.destroy(publicId);
+    }
+  } catch (error) {
+    console.error('Error deleting files from Cloudinary:', error);
+    throw error;
+  }
+};
+
+// Update Elder Controller
+export const updateElderData = async (req, res) => {
+  const { id } = req.params;
+  const updateData = req.body;
+
+  // Validate ID
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return res.status(400).json({ error: 'Invalid elder ID' });
+  }
+
+  // Start a Mongoose transaction
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  try {
+    // Fetch current elder data
+    const currentElder = await Elder.findById(id).session(session);
+    if (!currentElder) {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(404).json({ error: 'Elder not found' });
+    }
+
+    // Construct update object
+    const updateObject = { $set: {} };
+
+    // Handle array fields properly
+    for (const key of Object.keys(updateData)) {
+      if (Array.isArray(updateData[key])) {
+        updateObject.$set[key] = updateData[key]; // Fully replace arrays like emergencyContacts
+      } else {
+        updateObject.$set[key] = updateData[key]; // Update other fields normally
+      }
+    }
+
+    // Update elder's information in the database
+    const updatedElder = await Elder.findByIdAndUpdate(id, updateObject, {
+      new: true,
+      runValidators: true,
+      session,
+    });
+
+    if (!updatedElder) {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(500).json({ error: 'Failed to update elder' });
+    }
+
+    // Handle Cloudinary file deletions only after successful update
+    const fileFields = [
+      'photo',
+      'insuranceInfo.documents',
+      'legalDocuments',
+      'medicalDocuments',
+    ];
+
+    for (const field of fileFields) {
+      const currentValue = currentElder.get(field);
+      const newValue = updateData[field];
+
+      if (
+        newValue &&
+        JSON.stringify(currentValue) !== JSON.stringify(newValue)
+      ) {
+        if (Array.isArray(currentValue)) {
+          const filesToDelete = currentValue.filter(
+            (file) => !newValue.includes(file)
+          );
+          if (filesToDelete.length > 0) {
+            await deleteFilesFromCloudinary(filesToDelete);
+          }
+        } else if (
+          typeof currentValue === 'string' &&
+          currentValue !== newValue
+        ) {
+          await deleteFilesFromCloudinary([currentValue]);
+        }
+      }
+    }
+
+    // Commit the transaction
+    await session.commitTransaction();
+    session.endSession();
+
+    res.status(200).json({
+      status: 'success',
+      message: 'Elder updated successfully',
+      data: updatedElder,
+    });
+  } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
+    res.status(500).json({
+      status: 'error',
+      message: error.message || 'Failed to update elder',
+      error: error.message,
+    });
+  }
+};
+
+//update Elder Image
 export const updateElderImage = async (req, res) => {
   const session = await mongoose.startSession();
   session.startTransaction();
@@ -247,6 +368,82 @@ export const deleteElder = async (req, res) => {
     res.status(500).json({
       status: 'error',
       message: error.message || 'Server error',
+    });
+  }
+};
+
+// Delete Elder Controller
+export const deleteElderData = async (req, res) => {
+  const { id } = req.params;
+
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return res.status(400).json({ error: 'Invalid elder ID' });
+  }
+
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  try {
+    // Step 1: Find the elder
+    const elder = await Elder.findById(id).session(session);
+    if (!elder) {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(404).json({ error: 'Elder not found' });
+    }
+
+    // Step 2: Remove elder from caregivers' assignedElders list
+    await Caregiver.updateMany(
+      { assignedElders: id },
+      { $pull: { assignedElders: id } },
+      { session }
+    );
+
+    // Step 3: Delete associated health logs
+    await HealthLog.deleteMany({ elderlyId: id }).session(session);
+
+    // Step 4: Delete associated medications
+    await Medication.deleteMany({ elderlyId: id }).session(session);
+
+    // Step 5: Delete associated events
+    await Event.deleteMany({ elderIds: id }).session(session);
+
+    // Step 6: Delete associated notes
+    await Note.deleteMany({ elderId: id }).session(session);
+
+    // Step 7: Delete elder’s documents and profile picture from Cloudinary
+    const fileFields = [
+      'photo',
+      'insuranceInfo.documents',
+      'legalDocuments',
+      'medicalDocuments',
+    ];
+
+    for (const field of fileFields) {
+      const files = elder.get(field);
+      if (Array.isArray(files)) {
+        await deleteFilesFromCloudinary(files);
+      } else if (typeof files === 'string') {
+        await deleteFilesFromCloudinary([files]);
+      }
+    }
+
+    // Step 8: Delete the elder
+    await Elder.findByIdAndDelete(id).session(session);
+
+    // Commit the transaction
+    await session.commitTransaction();
+    session.endSession();
+
+    res.status(200).json({
+      message: 'Elder and all associated records deleted successfully',
+    });
+  } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
+    res.status(500).json({
+      error: 'Failed to delete elder',
+      details: error.message,
     });
   }
 };

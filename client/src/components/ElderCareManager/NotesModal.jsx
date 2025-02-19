@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import {
   X,
   ChevronLeft,
@@ -16,6 +16,7 @@ import apiRequest from '../../utils/api';
 import { toast, ToastContainer } from 'react-toastify';
 import { TailSpin } from 'react-loader-spinner';
 
+// eslint-disable-next-line react/prop-types
 const NotesModal = ({ isOpen, onClose, elderId }) => {
   const [notes, setNotes] = useState([]);
   const [loading, setLoading] = useState(false);

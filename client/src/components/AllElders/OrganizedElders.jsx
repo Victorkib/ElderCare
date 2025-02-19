@@ -35,10 +35,12 @@ import {
   Person,
   Schedule,
 } from '@mui/icons-material';
+import { Delete as DeleteIcon } from '@mui/icons-material';
 import apiRequest from '../../utils/api';
 import { toast, ToastContainer } from 'react-toastify';
 import { TailSpin } from 'react-loader-spinner';
 import { useNavigate } from 'react-router-dom';
+import DeletionConfirmationDialog from '../custom/DeletionConfirmationDialog';
 
 const OrganizedElders = () => {
   // Sample data - in real app, this would come from an API
@@ -94,7 +96,6 @@ const OrganizedElders = () => {
   });
   const [anchorEl, setAnchorEl] = useState(null);
   const [selectedElder, setSelectedElder] = useState(null);
-  console.log('selectedElder: ', selectedElder);
 
   // Stats data
   const stats = [
@@ -191,6 +192,33 @@ const OrganizedElders = () => {
       : 'default';
   };
 
+  // Add these state declarations with your other states
+  const [deletionDialogOpen, setDeletionDialogOpen] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+
+  // Add this function to handle elder deletion
+  const handleDeleteElder = async () => {
+    if (!selectedElder) return;
+
+    setDeleteLoading(true);
+    try {
+      const response = await apiRequest.delete(
+        `/elders/deleteElderData/${selectedElder.id}`
+      );
+      if (response.status) {
+        setInitialElders((prev) =>
+          prev.filter((elder) => elder.id !== selectedElder.id)
+        );
+        toast.success('Elder successfully deleted');
+        handleMenuClose();
+        setDeletionDialogOpen(false);
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Error deleting elder');
+    } finally {
+      setDeleteLoading(false);
+    }
+  };
   return (
     <Box sx={{ p: 3, maxWidth: 1400, margin: '0 auto' }}>
       {/* Header */}
@@ -401,9 +429,18 @@ const OrganizedElders = () => {
             Schedule Manager
           </Button>
         </MenuItem>
-        <MenuItem onClick={handleMenuClose}>Update Care Plan</MenuItem>
-        <MenuItem onClick={handleMenuClose} sx={{ color: 'error.main' }}>
-          Mark Critical
+        <MenuItem
+          onClick={() => setDeletionDialogOpen(true)}
+          className="hover:bg-red-50"
+        >
+          <Button
+            variant="contained"
+            className="border border-red-500 text-red-500 hover:bg-red-500 hover:text-white transition-colors duration-200"
+            startIcon={<DeleteIcon />}
+            size="small"
+          >
+            Delete
+          </Button>
         </MenuItem>
       </Menu>
 
@@ -419,6 +456,14 @@ const OrganizedElders = () => {
         </div>
       )}
       <ToastContainer />
+      <DeletionConfirmationDialog
+        open={deletionDialogOpen}
+        onClose={() => setDeletionDialogOpen(false)}
+        onConfirm={handleDeleteElder}
+        itemName={selectedElder?.name || ''}
+        itemType="resident"
+        loading={deleteLoading}
+      />
     </Box>
   );
 };

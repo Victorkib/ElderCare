@@ -217,7 +217,7 @@ const ElderProfile = () => {
             <Typography variant="h4" component="h1" sx={{ mb: 1 }}>
               {elder.firstName} {elder.lastName}
               <IconButton
-                onClick={() => setIsEditing(!isEditing)}
+                onClick={() => navigate(`/elderEdit/${elder._id}`)}
                 sx={{ ml: 2 }}
               >
                 <Edit fontSize="small" />

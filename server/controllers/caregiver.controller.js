@@ -1,16 +1,27 @@
 import Caregiver from '../models/caregiver.model.js';
+import mongoose from 'mongoose';
+import Elder from '../models/elder.model.js';
 
 // Get all caregivers with pagination and filtering
 export const getCaregivers = async (req, res) => {
   try {
-    const { page = 1, limit = 5, status } = req.query;
+    let { page = 1, limit = 5, status } = req.query;
+
+    // Convert to numbers & enforce minimum values
+    page = Math.max(Number(page), 1);
+    limit = Math.max(Number(limit), 1);
+
+    // Build query
     const query = status && status !== 'all' ? { status } : {};
 
+    // Fetch caregivers with pagination & populate assigned elders
     const caregivers = await Caregiver.find(query)
-      .limit(limit * 1)
+      .populate({ path: 'assignedElders', select: 'firstName roomNumber' })
+      .limit(limit)
       .skip((page - 1) * limit)
       .exec();
 
+    // Count total caregivers
     const count = await Caregiver.countDocuments(query);
 
     res.status(200).json({
@@ -72,12 +83,47 @@ export const updateCaregiver = async (req, res) => {
 
 // Delete a caregiver
 export const deleteCaregiver = async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
   try {
     const { id } = req.params;
-    await Caregiver.findByIdAndDelete(id);
+
+    // Step 1: Find elders assigned to this caregiver
+    const elders = await Elder.find({ assignedCaregivers: id }).session(
+      session
+    );
+
+    if (elders.length > 0) {
+      // Step 2: Remove the caregiver from each elder's assignedCaregivers list
+      await Elder.updateMany(
+        { assignedCaregivers: id },
+        { $pull: { assignedCaregivers: id } },
+        { session }
+      );
+    }
+
+    // Step 3: Delete the caregiver after ensuring they are removed from all elders
+    const deletedCaregiver = await Caregiver.findByIdAndDelete(id, { session });
+
+    if (!deletedCaregiver) {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(404).json({ message: 'Caregiver not found' });
+    }
+
+    // Step 4: Commit the transaction
+    await session.commitTransaction();
+    session.endSession();
+
     res.status(200).json({ message: 'Caregiver deleted successfully' });
   } catch (error) {
-    res.status(500).json({ message: 'Failed to delete caregiver', error });
+    await session.abortTransaction();
+    session.endSession();
+
+    res
+      .status(500)
+      .json({ message: 'Failed to delete caregiver', error: error.message });
   }
 };
 

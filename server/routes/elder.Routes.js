@@ -16,6 +16,8 @@ import {
   getAllEldersDetails,
   assignCaregiver,
   updateElderImage,
+  updateElderData,
+  deleteElderData,
 } from '../controllers/elder.controller.js';
 
 const router = express.Router();
@@ -26,8 +28,10 @@ router.get('/', getAllElders);
 router.get('/getAllElders', getAllELderWithoutFiltering);
 router.get('/getSingleElder/:id', getElder);
 router.patch('/:id', updateElder);
+router.patch('/updateElderData/:id', updateElderData);
 router.patch('/updatePhoto/:id', updateElderImage);
 router.delete('/:id', deleteElder);
+router.delete('/deleteElderData/:id', deleteElderData);
 
 // Specialized routes
 router.get('/:id/medical', getElderMedicalInfo);
